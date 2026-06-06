@@ -807,7 +807,7 @@ Implementar e garantir cada item abaixo:
 #### Camada 4 — Logs e detecção
 
 - [ ] Logar toda tentativa de input com caracteres suspeitos (`'`, `"`, `;`, `--`, `/*`) sem expor no response
-- [ ] Em produção, **nunca** retornar mensagem de erro do Prisma/PostgreSQL ao cliente (pode vazar estrutura do banco):
+- [ ] Em produção, **nunca** retornar mensagem de erro do Prisma/MySQL ao cliente (pode vazar estrutura do banco):
   ```ts
   // errorMiddleware.ts — tratamento de erros Prisma
   if (error instanceof PrismaClientKnownRequestError) {
@@ -1031,7 +1031,7 @@ useEffect(() => {
 
 // ✅ CORRETO — useMemo apenas com benefício real
 const filteredLeads = useMemo(
-  () => leads.filter(l => l.status === activeStatus),
+  () => leads.filter((l) => l.status === activeStatus),
   [leads, activeStatus], // recalcula só quando dependências mudam
 );
 
@@ -1068,10 +1068,14 @@ const filteredLeads = useMemo(
 
 ```tsx
 // ✅ CORRETO — usar ID único do dado (UUID do banco)
-{leads.map(lead => <LeadCard key={lead.id} lead={lead} />)}
+{
+  leads.map((lead) => <LeadCard key={lead.id} lead={lead} />);
+}
 
 // ❌ ERRADO — index como key (causa bugs em listas reordenadas)
-{leads.map((lead, index) => <LeadCard key={index} lead={lead} />)}
+{
+  leads.map((lead, index) => <LeadCard key={index} lead={lead} />);
+}
 ```
 
 ---
@@ -1090,18 +1094,18 @@ const filteredLeads = useMemo(
 export default {
   theme: {
     screens: {
-      xs:  "320px",   // celulares pequenos (iPhone SE)
-      sm:  "375px",   // celulares padrão (iPhone 13 mini)
-      md:  "425px",   // celulares grandes (iPhone Pro Max)
-      lg:  "768px",   // tablets
-      xl:  "1024px",  // laptops
-      "2xl": "1280px" // desktops
+      xs: "320px", // celulares pequenos (iPhone SE)
+      sm: "375px", // celulares padrão (iPhone 13 mini)
+      md: "425px", // celulares grandes (iPhone Pro Max)
+      lg: "768px", // tablets
+      xl: "1024px", // laptops
+      "2xl": "1280px", // desktops
     },
     extend: {
       // Sempre definir aqui — nunca usar valores arbitrários inline
-    }
-  }
-}
+    },
+  },
+};
 ```
 
 > **Regra:** Todo layout começa no mobile (320px) e expande com media queries.
@@ -1117,47 +1121,47 @@ export default {
 
 :root {
   /* ─── CORES ──────────────────────────────── */
-  --color-primary:       #2563EB;   /* blue-600 — ações principais */
-  --color-primary-hover: #1D4ED8;   /* blue-700 — hover de botão primário */
-  --color-danger:        #DC2626;   /* red-600  — deletar, erros */
-  --color-success:       #16A34A;   /* green-600 — sucesso, fechado */
-  --color-warning:       #D97706;   /* amber-600 — atenção, proposta */
-  --color-neutral:       #6B7280;   /* gray-500  — texto secundário */
+  --color-primary: #2563eb; /* blue-600 — ações principais */
+  --color-primary-hover: #1d4ed8; /* blue-700 — hover de botão primário */
+  --color-danger: #dc2626; /* red-600  — deletar, erros */
+  --color-success: #16a34a; /* green-600 — sucesso, fechado */
+  --color-warning: #d97706; /* amber-600 — atenção, proposta */
+  --color-neutral: #6b7280; /* gray-500  — texto secundário */
 
   /* Status dos leads — usado no Badge e Kanban */
-  --status-novo:             #3B82F6; /* blue-500 */
-  --status-em-atendimento:   #F59E0B; /* amber-500 */
-  --status-proposta-enviada: #8B5CF6; /* violet-500 */
-  --status-fechado:          #10B981; /* emerald-500 */
+  --status-novo: #3b82f6; /* blue-500 */
+  --status-em-atendimento: #f59e0b; /* amber-500 */
+  --status-proposta-enviada: #8b5cf6; /* violet-500 */
+  --status-fechado: #10b981; /* emerald-500 */
 
   /* ─── TIPOGRAFIA ─────────────────────────── */
-  --font-size-xs:   0.75rem;    /* 12px */
-  --font-size-sm:   0.875rem;   /* 14px */
-  --font-size-base: 1rem;       /* 16px */
-  --font-size-lg:   1.125rem;   /* 18px */
-  --font-size-xl:   1.25rem;    /* 20px */
-  --font-size-2xl:  1.5rem;     /* 24px */
-  --font-size-3xl:  1.875rem;   /* 30px */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
 
   /* ─── ESPAÇAMENTO ────────────────────────── */
-  --spacing-1:  0.25rem;   /* 4px  */
-  --spacing-2:  0.5rem;    /* 8px  */
-  --spacing-3:  0.75rem;   /* 12px */
-  --spacing-4:  1rem;      /* 16px */
-  --spacing-6:  1.5rem;    /* 24px */
-  --spacing-8:  2rem;      /* 32px */
-  --spacing-12: 3rem;      /* 48px */
+  --spacing-1: 0.25rem; /* 4px  */
+  --spacing-2: 0.5rem; /* 8px  */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-12: 3rem; /* 48px */
 
   /* ─── RAIO DE BORDA ──────────────────────── */
-  --radius-sm: 0.25rem;   /* 4px  — inputs, badges */
-  --radius-md: 0.5rem;    /* 8px  — cards, botões */
-  --radius-lg: 1rem;      /* 16px — modais, drawers */
-  --radius-full: 9999px;  /* pílula — badges de status */
+  --radius-sm: 0.25rem; /* 4px  — inputs, badges */
+  --radius-md: 0.5rem; /* 8px  — cards, botões */
+  --radius-lg: 1rem; /* 16px — modais, drawers */
+  --radius-full: 9999px; /* pílula — badges de status */
 
   /* ─── SOMBRAS ────────────────────────────── */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,.07);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,.1);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 ```
 
@@ -1290,12 +1294,14 @@ export default {
   )}
 
   {/* Sidebar */}
-  <aside className={`
+  <aside
+    className={`
     fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg
     transform transition-transform duration-300 ease-in-out
     lg:static lg:translate-x-0 lg:shadow-none
-    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-  `}>
+    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+  `}
+  >
     <SidebarContent />
   </aside>
 
@@ -1350,12 +1356,14 @@ export default {
  * Tablet:  2 colunas
  * Desktop: 3 colunas (ou tabela, conforme contexto)
  */
-<ul className="
+<ul
+  className="
   grid grid-cols-1 gap-4
   sm:grid-cols-2
   xl:grid-cols-3
-">
-  {leads.map(lead => (
+"
+>
+  {leads.map((lead) => (
     <LeadCard key={lead.id} lead={lead} />
   ))}
 </ul>
@@ -1368,19 +1376,21 @@ export default {
 ```tsx
 // Badge.tsx — cor dinâmica por status
 const STATUS_COLORS: Record<LeadStatus, string> = {
-  NOVO:              "bg-blue-100 text-blue-700 ring-blue-200",
-  EM_ATENDIMENTO:    "bg-amber-100 text-amber-700 ring-amber-200",
-  PROPOSTA_ENVIADA:  "bg-violet-100 text-violet-700 ring-violet-200",
-  FECHADO:           "bg-emerald-100 text-emerald-700 ring-emerald-200",
+  NOVO: "bg-blue-100 text-blue-700 ring-blue-200",
+  EM_ATENDIMENTO: "bg-amber-100 text-amber-700 ring-amber-200",
+  PROPOSTA_ENVIADA: "bg-violet-100 text-violet-700 ring-violet-200",
+  FECHADO: "bg-emerald-100 text-emerald-700 ring-emerald-200",
 };
 
 export function Badge({ status }: { status: LeadStatus }) {
   return (
-    <span className={`
+    <span
+      className={`
       inline-flex items-center px-2.5 py-0.5
       rounded-full text-xs font-medium ring-1 ring-inset
       ${STATUS_COLORS[status]}
-    `}>
+    `}
+    >
       {STATUS_LABELS[status]}
     </span>
   );
@@ -1879,7 +1889,7 @@ npm install -D jest ts-jest @types/jest supertest @types/supertest
 > ```env
 > # apps/backend/.env.test
 > NODE_ENV=test
-> DATABASE_URL=postgresql://postgres:changeme@localhost:5432/mini_crm_leads_test
+> DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_leads_test
 > JWT_SECRET=test-secret-key-minimum-32-chars-here
 > CORS_ORIGIN=http://localhost:3000
 > PORT=3002
@@ -2362,1074 +2372,331 @@ O `README.md` na raiz do projeto deve conter:
 
 ## [SEÇÃO 20] ORDEM DE EXECUÇÃO POR ETAPAS
 
-> Execute **uma etapa por vez** na IA. Só avance quando a etapa atual estiver funcionando.
-> **COMMITS ATÔMICOS:** Cada passo marcado com `git commit` deve ser commitado individualmente.
-> Um commit por grupo de pacotes instalados, por arquivo de configuração, por feature implementada.
+> Execute uma etapa por vez na IA. Só avance quando a etapa atual estiver funcionando.
+> Estratégia de commits: menos commits, porém mais informativos e com escopo claro.
 
 ---
 
-### ─── ETAPA 1 — BANCO DE DADOS ───────────────────────────────
+### Padrão de Commit Estratégico (obrigatório)
 
-**Objetivo:** MySQL configurado, schema criado, migrations rodando.
+Use sempre commit com título + corpo:
 
+```bash
+git commit -m "tipo(escopo): resumo objetivo da entrega" \
+  -m "Contexto: por que esta mudança foi necessária." \
+  -m "Inclui: lista curta dos principais arquivos/partes alteradas." \
+  -m "Impacto: o que passa a funcionar e como validar rapidamente."
 ```
-Passos + Commits:
 
-  [ ] 1.1  Criar pasta do monorepo: mini-crm-leads/
-           git commit: "chore: create monorepo folder structure"
+Boas práticas:
 
-  [ ] 1.2  Criar apps/backend/ com npm init --yes
-           git commit: "chore(backend): npm init --yes + configure package.json base"
-
-  [ ] 1.3  Instalar Prisma:
-           npm install prisma @prisma/client
-           git commit: "chore(deps): install prisma @prisma/client"
-
-  [ ] 1.4  npx prisma init → configurar datasource mysql em schema.prisma
-           git commit: "chore(prisma): npx prisma init + configure datasource mysql"
-
-  [ ] 1.5  Implementar schema.prisma completo (User, Lead, Interaction, enums)
-           git commit: "feat(schema): implement prisma schema User Lead Interaction enums"
-
-  [ ] 1.6  Criar apps/backend/.env.example com DATABASE_URL mysql://...
-           (o .env real não é commitado — está no .gitignore)
-           git commit: "chore(env): create apps/backend/.env.example with DATABASE_URL"
-
-  [ ] 1.7  npx prisma migrate dev --name init → gera tabelas no banco
-           git commit: "chore(migration): add initial prisma migration"
-
-  [ ] 1.8  Implementar prisma/seed.ts com 1 usuário + 3 leads + 2 interações
-           git commit: "feat(seed): implement prisma/seed.ts with test data"
-
-  [ ] 1.9  Adicionar config "prisma.seed" no package.json (obrigatório para npx prisma db seed)
-           git commit: "chore(seed): configure prisma.seed script in package.json"
-
-  [ ] 1.10 npx prisma db seed → verificar dados no banco
-           (sem commit — validação)
-  [ ] 1.11 npx prisma studio → conferir visualmente
-           (sem commit — validação)
-
-Entregas:
-  ✓ schema.prisma com relações, enums e onDelete Cascade
-  ✓ Migration em prisma/migrations/ commitada
-  ✓ Seed: admin@teste.com / Admin@123
-  ✓ DATABASE_URL no .env.example
-  ✓ 7 commits atômicos
-```
+- Um commit por bloco funcional completo (não por arquivo isolado).
+- Título com até ~72 caracteres, corpo com decisões e impacto.
+- Evitar commit genérico como "ajustes" ou "update".
 
 ---
 
-### ─── ETAPA 2 — BACKEND — FUNDAÇÃO ───────────────────────────
+### ─── ETAPA 1 — BANCO DE DADOS (MySQL + Prisma) ─────────────
 
-**Objetivo:** Express rodando com estrutura de camadas, erros tratados, env validada.
+Objetivo: banco configurado, schema validado, migration e seed prontos.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 2.1  Instalar grupo servidor HTTP:
-           npm install express cors cookie-parser
-           git commit: "chore(deps): install express cors cookie-parser"
+1. chore(db): bootstrap prisma + datasource mysql
+Contexto: inicializa infraestrutura de persistência.
+Inclui: prisma init, datasource mysql, env example base.
+Impacto: projeto pronto para migrar schema.
 
-  [ ] 2.2  Instalar grupo segurança:
-           npm install helmet express-rate-limit
-           git commit: "chore(deps): install helmet express-rate-limit"
+2. feat(db): schema completo + migration inicial + seed
+Contexto: materializa modelo de domínio no banco.
+Inclui: User/Lead/Interaction/enums, migration init, seed com usuário e dados de teste.
+Impacto: banco reproduzível e pronto para desenvolvimento.
 
-  [ ] 2.3  Instalar grupo autenticação:
-           npm install jsonwebtoken bcrypt
-           git commit: "chore(deps): install jsonwebtoken bcrypt"
-
-  [ ] 2.4  Instalar grupo validação + ORM:
-           npm install zod prisma @prisma/client
-           # ATENÇÃO: prisma vai em dependencies (não devDeps) — necessário no Docker
-           git commit: "chore(deps): install zod prisma @prisma/client (in dependencies)"
-
-  [ ] 2.5  Instalar TypeScript + ferramentas dev:
-           npm install -D typescript ts-node-dev @types/node @types/express @types/cors @types/cookie-parser
-           git commit: "chore(devdeps): install typescript ts-node-dev @types/node @types/express"
-
-  [ ] 2.6  Instalar @types restantes:
-           npm install -D @types/jsonwebtoken @types/bcrypt
-           git commit: "chore(devdeps): install @types/jsonwebtoken @types/bcrypt"
-
-  [ ] 2.7  Configurar tsconfig.json (outDir: ./dist — obrigatório para o Docker)
-           git commit: "chore(config): configure tsconfig.json with outDir dist"
-
-  [ ] 2.8  Adicionar scripts no package.json:
-           "build": "tsc", "dev": "ts-node-dev...", "start": "node dist/server.js", "test": "jest"
-           git commit: "chore(config): add package.json scripts build dev start test"
-
-  [ ] 2.9  Implementar config/env.ts (validação Zod — DATABASE_URL começa com mysql://)
-           git commit: "feat(config): implement config/env.ts with Zod validation"
-
-  [ ] 2.10 Implementar config/database.ts (singleton PrismaClient)
-           git commit: "feat(config): implement config/database.ts Prisma singleton"
-
-  [ ] 2.11 Implementar utils/AppError.ts
-           git commit: "feat(utils): implement utils/AppError.ts"
-
-  [ ] 2.12 Implementar utils/asyncHandler.ts
-           git commit: "feat(utils): implement utils/asyncHandler.ts"
-
-  [ ] 2.13 Implementar utils/cookieOptions.ts
-           git commit: "feat(utils): implement utils/cookieOptions.ts"
-
-  [ ] 2.14 Implementar middlewares/errorMiddleware.ts
-           git commit: "feat(middleware): implement middlewares/errorMiddleware.ts"
-
-  [ ] 2.15 Implementar middlewares/rateLimitMiddleware.ts
-           git commit: "feat(middleware): implement middlewares/rateLimitMiddleware.ts"
-
-  [ ] 2.16 Implementar app.ts (helmet, cors, cookie-parser, router)
-           git commit: "feat(app): implement app.ts with helmet cors cookie-parser"
-
-  [ ] 2.17 Implementar server.ts (listen + graceful shutdown)
-           git commit: "feat(server): implement server.ts with graceful shutdown"
-
-  [ ] 2.18 Testar: npm run dev → servidor respondendo em :3001
-           (sem commit — validação)
-
-Entregas:
-  ✓ Express rodando com TypeScript
-  ✓ helmet + cors + rate-limit ativos
-  ✓ errorMiddleware global funcionando
-  ✓ 16 commits atômicos
-```
+Validação:
+- npx prisma migrate dev --name init
+- npx prisma db seed
+- npx prisma studio
 
 ---
 
-### ─── ETAPA 3 — BACKEND — AUTENTICAÇÃO ───────────────────────
+### ─── ETAPA 2 — BACKEND FUNDAÇÃO (Express + Segurança) ───────
 
-**Objetivo:** Register, login, logout e /me funcionando com JWT em httpOnly cookie.
+Objetivo: servidor TypeScript com arquitetura de camadas e segurança base.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 3.1  Implementar validators/authValidator.ts
-           git commit: "feat(auth): implement validators/authValidator.ts"
+1. chore(backend): setup TypeScript + scripts + dependências core
+Contexto: estrutura mínima executável.
+Inclui: dependências runtime/dev, tsconfig, scripts build/dev/start/test.
+Impacto: backend compila e sobe corretamente.
 
-  [ ] 3.2  Implementar types/express.d.ts (extensão req.user)
-           git commit: "feat(auth): implement types/express.d.ts req.user extension"
+2. feat(core): config de ambiente + prisma singleton + tratamento de erros
+Contexto: robustez operacional e padronização.
+Inclui: config/env.ts, config/database.ts, AppError, asyncHandler, errorMiddleware.
+Impacto: falhas ficam previsíveis e auditáveis.
 
-  [ ] 3.3  Implementar repositories/userRepository.ts
-           git commit: "feat(auth): implement repositories/userRepository.ts"
+3. feat(app): app.ts/server.ts com helmet, cors, cookie-parser e rate-limit
+Contexto: hardening inicial OWASP.
+Inclui: middlewares globais, bootstrap do servidor, graceful shutdown.
+Impacto: API pronta para receber módulos de negócio.
 
-  [ ] 3.4  Implementar services/authService.ts
-           git commit: "feat(auth): implement services/authService.ts"
-
-  [ ] 3.5  Implementar controllers/authController.ts
-           git commit: "feat(auth): implement controllers/authController.ts"
-
-  [ ] 3.6  Implementar middlewares/authMiddleware.ts (JWT do cookie)
-           git commit: "feat(auth): implement middlewares/authMiddleware.ts"
-
-  [ ] 3.7  Implementar routes/authRoutes.ts + registrar em routes/router.ts
-           git commit: "feat(auth): implement authRoutes.ts + register in router.ts"
-
-  [ ] 3.8  Testar: POST /register, POST /login, GET /me, POST /logout
-           (sem commit — validação)
-
-Entregas:
-  ✓ JWT em httpOnly cookie, bcrypt salt 12, mensagem genérica (OWASP A07)
-  ✓ 7 commits atômicos
-```
+Validação:
+- npm run dev
+- GET /health (ou rota base da API)
 
 ---
 
-### ─── ETAPA 4 — BACKEND — LEADS ──────────────────────────────
+### ─── ETAPA 3 — AUTENTICAÇÃO ──────────────────────────────────
 
-**Objetivo:** CRUD completo com isolamento por usuário.
+Objetivo: register, login, logout e me com JWT em cookie httpOnly.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 4.1  Implementar validators/leadValidator.ts
-           git commit: "feat(leads): implement validators/leadValidator.ts"
+1. feat(auth): domínio de autenticação completo
+Contexto: núcleo de identidade e acesso.
+Inclui: validator, repository, service, controller, typing req.user.
+Impacto: autenticação com bcrypt + JWT segura e tipada.
 
-  [ ] 4.2  Implementar repositories/leadRepository.ts
-           git commit: "feat(leads): implement repositories/leadRepository.ts"
+2. feat(auth): middleware e rotas de autenticação integradas
+Contexto: expor fluxo completo para cliente.
+Inclui: authMiddleware, authRoutes, registro no router principal.
+Impacto: endpoints /auth/register, /auth/login, /auth/logout e /auth/me funcionais.
 
-  [ ] 4.3  Implementar services/leadService.ts
-           git commit: "feat(leads): implement services/leadService.ts"
-
-  [ ] 4.4  Implementar controllers/leadController.ts
-           git commit: "feat(leads): implement controllers/leadController.ts"
-
-  [ ] 4.5  Implementar routes/leadRoutes.ts + PATCH /:id/status + registrar em router.ts
-           git commit: "feat(leads): implement leadRoutes.ts with PATCH status endpoint"
-
-  [ ] 4.6  Testar: CRUD + lead de outro user retorna 404
-           (sem commit — validação)
-
-Entregas:
-  ✓ userId de req.user.id, paginação, filtros, ownership check
-  ✓ 5 commits atômicos
-```
+Validação:
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me
+- POST /auth/logout
 
 ---
 
-### ─── ETAPA 5 — BACKEND — INTERAÇÕES E DASHBOARD ─────────────
+### ─── ETAPA 4 — LEADS (CRUD + Ownership) ──────────────────────
 
-**Objetivo:** Interações por lead e dashboard com Promise.all.
+Objetivo: CRUD de leads com isolamento por usuário autenticado.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 5.1  Implementar validators/interactionValidator.ts
-           git commit: "feat(interactions): implement validators/interactionValidator.ts"
+1. feat(leads): CRUD base de leads com validação
+Contexto: implementar recurso principal do CRM.
+Inclui: validator, repository, service, controller, routes.
+Impacto: criar/listar/editar/remover leads com tipagem e erros padronizados.
 
-  [ ] 5.2  Implementar repositories/interactionRepository.ts
-           git commit: "feat(interactions): implement repositories/interactionRepository.ts"
+2. feat(leads): filtros, paginação, busca e PATCH de status
+Contexto: suportar UX de funil/kanban.
+Inclui: query params, paginação, busca por nome/email/empresa, endpoint PATCH status.
+Impacto: API preparada para listagem avançada e board de status.
 
-  [ ] 5.3  Implementar services/interactionService.ts
-           git commit: "feat(interactions): implement services/interactionService.ts"
-
-  [ ] 5.4  Implementar controllers/interactionController.ts
-           git commit: "feat(interactions): implement controllers/interactionController.ts"
-
-  [ ] 5.5  Implementar routes/interactionRoutes.ts + registrar em router.ts
-           git commit: "feat(interactions): implement interactionRoutes.ts"
-
-  [ ] 5.6  Implementar services/dashboardService.ts (Promise.all)
-           git commit: "feat(dashboard): implement dashboardService.ts with Promise.all"
-
-  [ ] 5.7  Implementar controllers/dashboardController.ts + routes/dashboardRoutes.ts
-           git commit: "feat(dashboard): implement dashboardController.ts + dashboardRoutes.ts"
-
-  [ ] 5.8  Testar: interações + GET /dashboard
-           (sem commit — validação)
-
-Entregas:
-  ✓ Ownership verificado antes de operar interações
-  ✓ Dashboard com 4 métricas em uma request
-  ✓ 7 commits atômicos
-```
+Validação:
+- GET /leads?page=1&limit=20&status=NOVO&search=acme
+- PATCH /leads/:id/status
 
 ---
 
-### ─── ETAPA 6 — BACKEND — TESTES (Jest + Supertest) ──────────
+### ─── ETAPA 5 — INTERAÇÕES + DASHBOARD ────────────────────────
 
-**Objetivo:** Cobertura de testes unitários e integração.
+Objetivo: histórico de contato por lead e visão analítica consolidada.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 6.1  Instalar Jest + ts-jest:
-           npm install -D jest ts-jest @types/jest
-           git commit: "chore(devdeps): install jest ts-jest @types/jest"
+1. feat(interactions): módulo de interações por lead
+Contexto: registrar relacionamento comercial.
+Inclui: validator/repository/service/controller/routes de interações.
+Impacto: timeline de interação por lead com verificação de ownership.
 
-  [ ] 6.2  Instalar Supertest:
-           npm install -D supertest @types/supertest
-           git commit: "chore(devdeps): install supertest @types/supertest"
+2. feat(dashboard): agregações com Promise.all
+Contexto: visão executiva de funil.
+Inclui: service/controller/route para métricas e últimos leads.
+Impacto: endpoint único para alimentar cards do dashboard.
 
-  [ ] 6.3  Implementar jest.config.ts
-           git commit: "chore(jest): implement jest.config.ts"
-
-  [ ] 6.4  Criar tests/setup.ts (limpar banco de teste a cada suite)
-           git commit: "test(setup): implement tests/setup.ts db cleanup"
-
-  [ ] 6.5  Implementar tests/unit/authService.test.ts
-           git commit: "test(unit): implement tests/unit/authService.test.ts"
-
-  [ ] 6.6  Implementar tests/unit/leadService.test.ts
-           git commit: "test(unit): implement tests/unit/leadService.test.ts"
-
-  [ ] 6.7  Implementar tests/integration/auth.test.ts
-           git commit: "test(integration): implement tests/integration/auth.test.ts"
-
-  [ ] 6.8  Implementar tests/integration/leads.test.ts
-           git commit: "test(integration): implement tests/integration/leads.test.ts"
-
-  [ ] 6.9  npm test → todos passando
-           (sem commit — validação)
-
-Entregas:
-  ✓ Unitários com mocks, integração com banco mini_crm_test
-  ✓ Teste de segurança: lead de outro usuário retorna 404
-  ✓ 8 commits atômicos
-```
+Validação:
+- POST /leads/:leadId/interactions
+- GET /dashboard
 
 ---
 
-### ─── ETAPA 7 — DOCKER (Traefik + MySQL + phpMyAdmin + Backend + Frontend) ─
+### ─── ETAPA 6 — TESTES BACKEND (Jest + Supertest) ─────────────
 
-**Objetivo:** `docker-compose up -d` sobe os 5 serviços com um único comando.
+Objetivo: reduzir regressão e garantir regras críticas de negócio.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 7.1  Criar apps/backend/Dockerfile multi-stage (Seção 12.2)
-           git commit: "chore(docker): implement apps/backend/Dockerfile multi-stage"
+1. test(backend): infraestrutura de testes e isolamento de banco
+Contexto: base para suíte confiável.
+Inclui: jest.config.ts, tests/setup.ts, dependências de teste, env de teste.
+Impacto: execução determinística de testes.
 
-  [ ] 7.2  Criar apps/backend/.dockerignore
-           git commit: "chore(docker): implement apps/backend/.dockerignore"
+2. test(backend): suíte unitária e integração para auth e leads
+Contexto: proteger fluxos críticos.
+Inclui: authService.test, leadService.test, auth.test, leads.test.
+Impacto: cobertura mínima do núcleo do CRM.
 
-  [ ] 7.3  Adicionar output: 'standalone' em next.config.ts
-           git commit: "chore(next): add output standalone in next.config.ts"
-
-  [ ] 7.4  Criar apps/frontend/Dockerfile multi-stage standalone (Seção 12.3)
-           git commit: "chore(docker): implement apps/frontend/Dockerfile standalone"
-
-  [ ] 7.5  Criar apps/frontend/.dockerignore
-           git commit: "chore(docker): implement apps/frontend/.dockerignore"
-
-  [ ] 7.6  Criar docker-compose.yml na raiz com os 5 serviços (Seção 12.1):
-           traefik → mysql → phpmyadmin → backend → frontend
-           DATABASE_URL interna: mysql://...@mysql:3306/...
-           Traefik roteia: Host(localhost)+PathPrefix(/api) → backend
-                           Host(localhost)+!PathPrefix(/api) → frontend
-           git commit: "chore(docker): implement docker-compose.yml with 5 services"
-
-  [ ] 7.7  Criar .env.example na raiz (MYSQL_ROOT_PASSWORD, MYSQL_USER, etc.)
-           git commit: "chore(env): create root .env.example for docker-compose"
-
-  [ ] 7.8  Copiar .env.example → .env e preencher valores
-           (não commitar o .env)
-
-  [ ] 7.9  docker-compose up -d --build
-           Verificar: docker-compose ps → 5 serviços "Up"
-
-  [ ] 7.10 Verificar URLs:
-           http://localhost       → frontend ✓
-           http://localhost/api/v1 → backend ✓
-           http://localhost:8080  → Traefik Dashboard ✓
-           http://localhost:8081  → phpMyAdmin ✓
-
-  [ ] 7.11 docker-compose exec backend npx prisma db seed
-
-Entregas:
-  ✓ Traefik roteia frontend + backend no mesmo host porta 80
-  ✓ MySQL com healthcheck — backend só sobe quando banco estiver pronto
-  ✓ phpMyAdmin em :8081 para inspeção visual do banco
-  ✓ Backend: multi-stage, usuário não-root, migrate no start
-  ✓ Frontend: standalone, NEXT_PUBLIC_* como build arg
-  ✓ 7 commits atômicos
-
-Prompt para a IA:
-  "Implemente o Docker completo conforme Seção 12 (12.1 a 12.6).
-  docker-compose.yml com 5 serviços: traefik, mysql, phpmyadmin, backend, frontend.
-  Traefik v3: PathPrefix(/api) → backend:3001, demais → frontend:3000.
-  Dockerfile multi-stage para cada app com usuário não-root.
-  DATABASE_URL interna: mysql://...@mysql:3306/..."
-```
+Validação:
+- npm test
+- npm run test:coverage
 
 ---
 
-### ─── ETAPA 8 — FRONTEND — BASE ───────────────────────────────
+### ─── ETAPA 7 — DOCKER COMPLETO (5 serviços) ──────────────────
 
-**Objetivo:** Next.js 14 App Router com TypeScript funcionando, auth configurada.
+Objetivo: subir ambiente inteiro com um único comando.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 8.1  Scaffoldar Next.js:
-           npx create-next-app@latest apps/frontend --typescript --tailwind --app --src-dir --import-alias "@/*"
-           git commit: "chore(frontend): scaffold Next.js 14 TypeScript TailwindCSS App Router"
+1. chore(docker): dockerfiles multi-stage + dockerignore (backend/frontend)
+Contexto: imagens menores e mais seguras.
+Inclui: Dockerfile backend, Dockerfile frontend standalone, dockerignore de ambos.
+Impacto: build previsível, execução com usuário não-root.
 
-  [ ] 8.2  Instalar Axios + Zustand:
-           npm install axios zustand
-           git commit: "chore(deps): install axios zustand"
+2. feat(docker): docker-compose com traefik + mysql + phpmyadmin + backend + frontend
+Contexto: orquestração local unificada.
+Inclui: healthcheck mysql, roteamento traefik (/api -> backend, resto -> frontend), rede e volume.
+Impacto: stack inteira operacional em localhost.
 
-  [ ] 8.3  Instalar React Hook Form + Zod:
-           npm install react-hook-form @hookform/resolvers zod
-           git commit: "chore(deps): install react-hook-form @hookform/resolvers zod"
+3. docs(docker): variáveis e operação
+Contexto: evitar erro de ambiente.
+Inclui: .env.example atualizado, comandos de subida/logs/seed/reset.
+Impacto: onboarding rápido e execução reproduzível.
 
-  [ ] 8.4  Implementar services/api.ts (Axios + withCredentials + interceptor 401)
-           git commit: "feat(api): implement services/api.ts withCredentials interceptor"
-
-  [ ] 8.5  Implementar types/index.ts (User, Lead, Interaction, LeadStatus, etc.)
-           git commit: "feat(types): implement types/index.ts shared types"
-
-  [ ] 8.6  Implementar lib/constants.ts + lib/utils.ts
-           git commit: "feat(lib): implement lib/constants.ts and lib/utils.ts"
-
-  [ ] 8.7  Implementar store/authStore.ts (Zustand)
-           git commit: "feat(store): implement store/authStore.ts Zustand"
-
-  [ ] 8.8  Implementar validators/authValidator.ts + leadValidator.ts
-           git commit: "feat(validators): implement authValidator.ts and leadValidator.ts"
-
-  [ ] 8.9  Implementar app/(auth)/login/page.tsx
-           git commit: "feat(auth): implement app/(auth)/login/page.tsx"
-
-  [ ] 8.10 Implementar app/(auth)/register/page.tsx
-           git commit: "feat(auth): implement app/(auth)/register/page.tsx"
-
-  [ ] 8.11 Implementar app/(private)/layout.tsx (proteção server-side)
-           git commit: "feat(layout): implement app/(private)/layout.tsx server-side guard"
-
-  [ ] 8.12 Testar: login redireciona para /dashboard
-           (sem commit — validação)
-
-Entregas:
-  ✓ Next.js App Router + TypeScript + TailwindCSS
-  ✓ Axios com withCredentials: true
-  ✓ Proteção de rotas server-side
-  ✓ 11 commits atômicos
-```
+Validação:
+- docker-compose up -d --build
+- docker-compose ps
+- http://localhost
+- http://localhost:8081
 
 ---
 
-### ─── ETAPA 9 — FRONTEND — FEATURES ──────────────────────────
+### ─── ETAPA 8 — FRONTEND BASE (Next.js + Auth) ────────────────
 
-**Objetivo:** Todas as telas funcionais conectadas à API, responsivas e acessíveis.
+Objetivo: base do app web com autenticação e estrutura escalável.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 9.0  Criar styles/tokens.css + configurar tailwind.config.ts (Seção 11b)
-           — breakpoints 320/375/425/768/1024/1280
-           — paleta de cores por status (NOVO, EM_ATENDIMENTO, etc.)
-           git commit: "chore(design): implement design tokens and tailwind breakpoints"
+1. chore(frontend): scaffold Next.js + dependências essenciais
+Contexto: preparar plataforma de UI.
+Inclui: create-next-app, axios, zustand, react-hook-form, zod.
+Impacto: front pronto para implementação por feature.
 
-  [ ] 9.1  Implementar components/ui/ (Button, Input, Modal, Badge, Spinner, EmptyState)
-           — Button: todos os estados hover/active/disabled/focus-visible (Seção 11b)
-           — Badge: cores dinâmicas por status (STATUS_COLORS map)
-           — Input: label associada com htmlFor + aria-required
-           git commit: "feat(ui): implement components/ui atomic components with states"
+2. feat(frontend): infraestrutura de cliente
+Contexto: padronizar comunicação e estado.
+Inclui: services/api.ts, authStore, types compartilhados, validators, utils/constants.
+Impacto: base consistente para páginas privadas.
 
-  [ ] 9.2  Implementar components/layout/ (Sidebar, Header, PrivateLayout)
-           — Sidebar: drawer mobile (<1024px) + fixa desktop (>=1024px) (Seção 11b)
-           — Header: botão hambúrguer mobile com aria-label
-           — Overlay escuro fecha o drawer ao clicar fora
-           git commit: "feat(layout): implement responsive Sidebar Header PrivateLayout"
+3. feat(auth-ui): páginas login/register e layout privado
+Contexto: controlar acesso no frontend.
+Inclui: telas de auth, proteção server-side em layout privado.
+Impacto: fluxo autenticado funcional de ponta a ponta.
 
-  [ ] 9.3  Implementar hooks/useLeads.ts
-           — useEffect com AbortController cleanup
-           — retornar { data, isLoading, error }
-           git commit: "feat(hooks): implement hooks/useLeads.ts with cleanup"
-
-  [ ] 9.4  Implementar hooks/useInteractions.ts
-           git commit: "feat(hooks): implement hooks/useInteractions.ts with cleanup"
-
-  [ ] 9.5  Implementar app/(private)/leads/page.tsx (lista + busca + filtro)
-           — Grid: 1 col mobile / 2 cols tablet / 3 cols desktop (Seção 11b)
-           — Chaves estáveis: key={lead.id} (nunca index)
-           — Tratar loading / error / empty obrigatoriamente
-           git commit: "feat(leads): implement responsive leads list page"
-
-  [ ] 9.6  Implementar components/leads/LeadForm.tsx (criar + editar)
-           — Todo campo com label htmlFor + aria-required
-           — Validação Zod client-side com mensagem acessível
-           git commit: "feat(leads): implement LeadForm.tsx with accessible validation"
-
-  [ ] 9.7  Implementar app/(private)/leads/[id]/page.tsx (detalhes + interações)
-           — Texto longo com truncate / break-words (Seção 11b)
-           git commit: "feat(leads): implement lead detail page with interactions"
-
-  [ ] 9.8  Instalar @dnd-kit:
-           npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
-           git commit: "chore(deps): install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities"
-
-  [ ] 9.9  Implementar app/(private)/kanban/page.tsx
-           — Mobile (<768px): colunas empilhadas + <select> para mudar status
-           — Tablet (768-1023px): scroll horizontal com colunas de 18rem
-           — Desktop (>=1024px): grid-cols-4 fixo + drag and drop
-           — aria-label nos cards draggable; suporte Enter/Space para teclado
-           git commit: "feat(kanban): implement responsive kanban with dnd + mobile select"
-
-  [ ] 9.10 Implementar app/(private)/dashboard/page.tsx (4 cards + últimos leads)
-           — StatCards em grid: 1 col mobile / 2 cols tablet / 4 cols desktop
-           git commit: "feat(dashboard): implement responsive dashboard stats cards"
-
-  [ ] 9.11 Auditoria de responsividade (Seção 11b — Checklist Visual)
-           — Validar em 320 / 375 / 425 / 768 / 1024 / 1280
-           — Sem overflow horizontal em nenhum breakpoint
-           — Sidebar drawer mobile funcionando
-           — Kanban mobile com select funcionando
-           git commit: "fix(responsive): apply responsive audit fixes across all pages"
-
-  [ ] 9.12 Testar todos os fluxos CRUD + drag and drop
-           (sem commit — validação)
-
-Entregas:
-  ✓ Design tokens aplicados (tokens.css + tailwind.config.ts)
-  ✓ Loading / error / empty em todos os componentes
-  ✓ Kanban: drag and drop desktop + select mobile
-  ✓ Sidebar: drawer mobile + fixa desktop
-  ✓ Texto longo com truncate/break-words
-  ✓ Acessibilidade: labels, aria-label, foco visível, key estável
-  ✓ Auditoria por breakpoint concluída
-  ✓ 12 commits atômicos
-
-Prompt para a IA (Seção 11b — UI Reform):
-  "Você é um especialista em frontend design e engenharia de interface.
-  Implemente o frontend conforme Seção 11, 11b e 4.2.
-  A) Diagnóstico: listar o que pode quebrar em mobile (320px).
-  B) Mudanças: design tokens → layout responsivo → acessibilidade.
-  C) Código: Tailwind mobile-first, breakpoints 320/375/425/768/1024/1280.
-  D) Validação: confirmar comportamento em cada breakpoint.
-  Sidebar: drawer mobile + fixa desktop. Kanban: select mobile + drag desktop."
-```
+Validação:
+- login -> redirect dashboard
+- 401 -> redirect login
 
 ---
 
-### ─── ETAPA 9b — TESTES E2E (Playwright) ─────────────────────
+### ─── ETAPA 9 — FRONTEND FEATURES + DESIGN/RESPONSIVO ─────────
 
-**Objetivo:** Cobertura E2E dos fluxos críticos rodando em browser real.
+Objetivo: telas finais com UX robusta, acessível e responsiva.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 9b.1 Instalar Playwright:
-           npm install -D @playwright/test
-           npx playwright install chromium firefox
-           git commit: "chore(devdeps): install @playwright/test"
+1. feat(ui): design system e componentes base responsivos
+Contexto: consistência visual e manutenção.
+Inclui: tokens, breakpoints, Button/Input/Modal/Badge/Spinner/EmptyState, Sidebar/Header.
+Impacto: base visual padronizada e mobile-first.
 
-  [ ] 9b.2 Implementar playwright.config.ts (Seção 14b)
-           git commit: "chore(playwright): implement playwright.config.ts"
+2. feat(leads-ui): páginas de leads e detalhe com estados completos
+Contexto: fluxo operacional diário do CRM.
+Inclui: listagem, filtros, formulário, detalhes e interações com loading/error/empty.
+Impacto: gestão de leads completa no frontend.
 
-  [ ] 9b.3 Implementar e2e/fixtures/auth.fixture.ts
-           git commit: "test(e2e): implement e2e/fixtures/auth.fixture.ts"
+3. feat(kanban-dashboard): board de status + dashboard com auditoria de responsividade
+Contexto: visão de funil e produtividade.
+Inclui: kanban (dnd + fallback mobile), dashboard de métricas, revisão 320/375/425/768/1024/1280.
+Impacto: experiência confiável em desktop e mobile.
 
-  [ ] 9b.4 Implementar e2e/auth.spec.ts
-           git commit: "test(e2e): implement e2e/auth.spec.ts"
-
-  [ ] 9b.5 Implementar e2e/leads.spec.ts
-           git commit: "test(e2e): implement e2e/leads.spec.ts"
-
-  [ ] 9b.6 Implementar e2e/kanban.spec.ts
-           git commit: "test(e2e): implement e2e/kanban.spec.ts"
-
-  [ ] 9b.7 Implementar e2e/dashboard.spec.ts
-           git commit: "test(e2e): implement e2e/dashboard.spec.ts"
-
-  [ ] 9b.8 npm run test:e2e → todos os specs passando
-           (sem commit — validação)
-
-Entregas:
-  ✓ Playwright com webServer, Chromium + Firefox + iPhone 13
-  ✓ Fixture de auth reutilizável
-  ✓ 7 commits atômicos
-```
+Validação:
+- Fluxos CRUD completos
+- Kanban atualiza status e persiste
+- Sem overflow horizontal em nenhum breakpoint
 
 ---
 
-### ─── ETAPA 10 — DEPLOY ───────────────────────────────────────
+### ─── ETAPA 9b — E2E (Playwright) ─────────────────────────────
 
-**Objetivo:** Frontend no Vercel + Backend no Railway com MySQL.
+Objetivo: garantir fluxos críticos em navegador real.
 
-```
-Passos + Commits:
+Commits estratégicos:
 
-  [ ] 10.1 FRONTEND (Vercel):
-           vercel.com → New Project → Root: apps/frontend
-           Env: NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
-           git commit: "chore(deploy): add vercel configuration if needed"
+1. test(e2e): setup playwright + fixture de autenticação
+Contexto: base para testes de ponta a ponta.
+Inclui: playwright.config.ts, fixture authenticatedPage, scripts de execução.
+Impacto: suíte E2E pronta para crescer.
 
-  [ ] 10.2 BACKEND (Railway):
-           railway.app → New Project → root: apps/backend
-           Adicionar MySQL → copiar DATABASE_URL
-           Envs: DATABASE_URL, JWT_SECRET, PORT=3001,
-                 CORS_ORIGIN=https://seu-frontend.vercel.app, NODE_ENV=production
-           git commit: "chore(deploy): document Railway environment configuration"
+2. test(e2e): specs de auth, leads, kanban e dashboard
+Contexto: proteção contra regressão de produto.
+Inclui: auth.spec.ts, leads.spec.ts, kanban.spec.ts, dashboard.spec.ts.
+Impacto: validação automatizada dos fluxos críticos.
 
-  [ ] 10.3 Atualizar CORS_ORIGIN (Railway) + NEXT_PUBLIC_API_URL (Vercel) com URLs reais
-  [ ] 10.4 Testar fluxo completo em produção: register → login → criar lead → kanban
-
-Entregas:
-  ✓ Vercel + Railway funcionando
-  ✓ CORS configurado entre domínios
-  ✓ Migrations rodando no deploy
-```
+Validação:
+- npm run test:e2e
 
 ---
 
-### ─── ETAPA 11 — DOCUMENTAÇÃO E ENTREGA ──────────────────────
+### ─── ETAPA 10 — DEPLOY (Vercel + Railway) ────────────────────
 
-```
-Passos + Commits:
+Objetivo: publicação em ambiente real com variáveis corretas.
 
-  [ ] 11.1 Criar /docs/ai/README.md
-           git commit: "docs(ai): create /docs/ai/README.md"
+Commit estratégico:
 
-  [ ] 11.2 Criar /docs/ai/prompts.md (incluir este PROMPT-MESTRE como Prompt 1)
-           git commit: "docs(ai): create /docs/ai/prompts.md"
+1. chore(deploy): configuração de produção e documentação de variáveis
+Contexto: evitar falha de integração entre frontend e backend.
+Inclui: NEXT_PUBLIC_API_URL, CORS_ORIGIN, DATABASE_URL, JWT_SECRET e checklist de smoke test.
+Impacto: deploy replicável e auditável.
 
-  [ ] 11.3 Criar /docs/ai/decisions.md (nas suas palavras)
-           git commit: "docs(ai): create /docs/ai/decisions.md"
-
-  [ ] 11.4 Criar /docs/ai/review.md
-           git commit: "docs(ai): create /docs/ai/review.md"
-
-  [ ] 11.5 Escrever README.md principal completo (Seção 17)
-           git commit: "docs: write main README.md with setup and Docker instructions"
-
-  [ ] 11.6 Verificar .gitignore — nenhum .env commitado
-           git commit: "chore(gitignore): ensure all .env files are excluded"
-
-  [ ] 11.7 git log --oneline → revisar commits semânticos
-           (sem commit — validação)
-
-  [ ] 11.8 Enviar convite para "rodrigoamb" no GitHub
-
-Entregas:
-  ✓ README com instruções Docker (5 serviços) + local
-  ✓ /docs/ai/ com 4 arquivos
-  ✓ Convite enviado para rodrigoamb
-  ✓ 6 commits atômicos
-```
+Validação:
+- register -> login -> criar lead -> mover no kanban em produção
 
 ---
 
-### 📊 MAPA DE COMMITS — RESUMO TOTAL
+### ─── ETAPA 11 — DOCUMENTAÇÃO E ENTREGA ───────────────────────
 
-| Etapa     | Descrição                                                 | Commits                  |
-| --------- | --------------------------------------------------------- | ------------------------ |
-| 1         | Banco MySQL + Prisma                                      | 7                        |
-| 2         | Backend: dependências + configs + utils + middlewares     | 16                       |
-| 3         | Backend: autenticação                                     | 7                        |
-| 4         | Backend: leads                                            | 5                        |
-| 5         | Backend: interações + dashboard                           | 7                        |
-| 6         | Testes Jest + Supertest                                   | 8                        |
-| 7         | Docker: Traefik + MySQL + phpMyAdmin + Backend + Frontend | 7                        |
-| 8         | Frontend: base + auth                                     | 11                       |
-| 9         | Frontend: features + Design System + Responsividade + Kanban + Dashboard | 12                       |
-| 9b        | E2E Playwright                                            | 7                        |
-| 10        | Deploy Vercel + Railway                                   | 2                        |
-| 11        | Documentação + entrega                                    | 6                        |
-| **TOTAL** |                                                           | **~95 commits atômicos** |
+Objetivo: entrega final com rastreabilidade técnica e uso de IA documentado.
 
-> **Regra de ouro:** Um commit = uma instalação de pacote OU um arquivo de configuração OU um arquivo de feature.
-> Commits granulares demonstram raciocínio estruturado e são critério de avaliação.
+Commits estratégicos:
+
+1. docs(ai): documentação completa de uso da IA
+Contexto: atender exigência do teste técnico.
+Inclui: /docs/ai/README.md, prompts.md, decisions.md, review.md.
+Impacto: transparência no processo de construção.
+
+2. docs(project): README final + checklist de entrega
+Contexto: facilitar avaliação e execução local.
+Inclui: setup local, docker, variáveis, comandos de teste, pendências e diferenciais.
+Impacto: avaliador consegue executar sem fricção.
+
+Validação:
+- checklist da Seção 18 completo
 
 ---
 
-_Prompt criado por Arthur Bruno Araujo | arthur-brain | Mini CRM de Leads — Teste Técnico Full-Stack Jr_
-
-```
-Passos:
-  [ ] 1.1  Criar pasta do monorepo: mini-crm-leads/
-  [ ] 1.2  Criar apps/backend/ com npm init + TypeScript
-  [ ] 1.3  Instalar Prisma: npm install prisma @prisma/client
-  [ ] 1.4  npx prisma init → gera prisma/schema.prisma
-  [ ] 1.5  Implementar schema.prisma completo (User, Lead, Interaction, enums)
-  [ ] 1.6  Criar .env com DATABASE_URL local
-  [ ] 1.7  npx prisma migrate dev --name init → gera tabelas
-  [ ] 1.8  Implementar prisma/seed.ts com 1 usuário e 3 leads de teste
-  [ ] 1.9  npx prisma db seed → verificar dados no banco
-  [ ] 1.10 npx prisma studio → conferir visualmente
-
-Entregas desta etapa:
-  ✓ schema.prisma completo com relações e enums
-  ✓ Migration gerada em prisma/migrations/
-  ✓ Seed funcionando com usuário de teste
-  ✓ DATABASE_URL no .env.example documentada
-
-Prompt para a IA:
-  "Usando o schema.prisma da Seção 5, gere o arquivo prisma/seed.ts
-  que cria: 1 usuário (email: admin@teste.com, senha: Admin@123),
-  3 leads com status diferentes e 2 interações por lead.
-  Use bcrypt para hash da senha. TypeScript."
-```
-
----
-
-### ─── ETAPA 2 — BACKEND — FUNDAÇÃO ───────────────────────────
-
-**Objetivo:** Express rodando com estrutura de camadas, erros tratados, env validada.
-
-```
-Passos:
-  [ ] 2.1  Instalar dependências de produção:
-           npm install express helmet cors cookie-parser express-rate-limit jsonwebtoken bcrypt zod prisma @prisma/client
-           # ATENÇÃO: 'prisma' vai em dependencies (não devDependencies) para o Docker funcionar
-
-           Instalar @types e ferramentas de desenvolvimento:
-           npm install -D typescript ts-node-dev @types/node @types/express @types/cors @types/cookie-parser @types/jsonwebtoken @types/bcrypt
-  [ ] 2.2  Configurar tsconfig.json do backend
-  [ ] 2.3  Implementar config/env.ts (validação Zod de env vars)
-  [ ] 2.4  Implementar config/database.ts (singleton PrismaClient)
-  [ ] 2.5  Implementar utils/AppError.ts
-  [ ] 2.6  Implementar utils/asyncHandler.ts
-  [ ] 2.7  Implementar utils/cookieOptions.ts
-  [ ] 2.8  Implementar middlewares/errorMiddleware.ts
-  [ ] 2.9  Implementar middlewares/rateLimitMiddleware.ts
-  [ ] 2.10 Implementar app.ts (helmet, cors, cookie-parser, router)
-  [ ] 2.11 Implementar server.ts (listen + graceful shutdown)
-  [ ] 2.12 Testar: npm run dev → servidor respondendo em :3001
-
-Entregas desta etapa:
-  ✓ Express rodando com TypeScript
-  ✓ helmet + cors + rate-limit ativos
-  ✓ errorMiddleware global funcionando
-  ✓ AppError com código semântico e statusCode
-
-Prompt para a IA:
-  "Com base na Seção 8 e Seção 10, implemente: config/env.ts,
-  utils/AppError.ts, utils/asyncHandler.ts, middlewares/errorMiddleware.ts
-  e app.ts completo para Node.js + Express + TypeScript.
-  Usar helmet, cors (origin via env), cookie-parser e express-rate-limit."
-```
-
----
-
-### ─── ETAPA 3 — BACKEND — AUTENTICAÇÃO ───────────────────────
-
-**Objetivo:** Register, login, logout e /me funcionando com JWT em httpOnly cookie.
-
-```
-Passos:
-  [ ] 3.1  Implementar validators/authValidator.ts (Zod schemas)
-  [ ] 3.2  Implementar types/express.d.ts (extensão req.user)
-  [ ] 3.3  Implementar repositories/userRepository.ts
-  [ ] 3.4  Implementar services/authService.ts
-  [ ] 3.5  Implementar controllers/authController.ts
-  [ ] 3.6  Implementar middlewares/authMiddleware.ts (JWT do cookie)
-  [ ] 3.7  Implementar routes/authRoutes.ts
-  [ ] 3.8  Registrar em routes/router.ts
-  [ ] 3.9  Testar manualmente: POST /register, POST /login, GET /me, POST /logout
-
-Entregas desta etapa:
-  ✓ JWT gerado e salvo em httpOnly cookie
-  ✓ bcrypt com salt 12 no hash da senha
-  ✓ Mensagem genérica no login (OWASP A07)
-  ✓ Rate limit em /login (10 req / 15min por IP)
-  ✓ authMiddleware protegendo /me
-
-Prompt para a IA:
-  "Implemente a camada completa de autenticação conforme Seção 7.1 e Seção 8.
-  Stack: Node.js + Express + TypeScript + Prisma + JWT + bcrypt + Zod.
-  JWT deve ser salvo em httpOnly cookie com as opções da Seção 8.
-  Incluir JSDoc em todas as funções de service e repository."
-```
-
----
-
-### ─── ETAPA 4 — BACKEND — LEADS ──────────────────────────────
-
-**Objetivo:** CRUD de leads completo com isolamento por usuário.
-
-```
-Passos:
-  [ ] 4.1  Implementar validators/leadValidator.ts
-  [ ] 4.2  Implementar repositories/leadRepository.ts
-  [ ] 4.3  Implementar services/leadService.ts
-  [ ] 4.4  Implementar controllers/leadController.ts
-  [ ] 4.5  Implementar routes/leadRoutes.ts
-  [ ] 4.6  Implementar PATCH /:id/status (para o Kanban)
-  [ ] 4.7  Registrar em router.ts com authMiddleware
-  [ ] 4.8  Testar: CRUD completo + verificar que lead de outro user retorna 404
-
-Entregas desta etapa:
-  ✓ userId sempre de req.user.id (nunca do body)
-  ✓ Paginação + filtro por status + busca por nome/email/empresa
-  ✓ Ownership check em todas as operações
-  ✓ JSDoc completo em service e repository
-
-Prompt para a IA:
-  "Implemente a camada completa de leads conforme Seção 7.2 e Seção 7.4.
-  Incluir: CRUD completo, paginação, filtros, busca e PATCH de status para o Kanban.
-  Garantir ownership check em todas as queries Prisma (userId = req.user.id).
-  TypeScript + Prisma + Zod. JSDoc em todas as funções."
-```
-
----
-
-### ─── ETAPA 5 — BACKEND — INTERAÇÕES E DASHBOARD ─────────────
-
-**Objetivo:** Interações por lead e dashboard com agregações.
-
-```
-Passos:
-  [ ] 5.1  Implementar validators/interactionValidator.ts
-  [ ] 5.2  Implementar repositories/interactionRepository.ts
-  [ ] 5.3  Implementar services/interactionService.ts
-  [ ] 5.4  Implementar controllers/interactionController.ts
-  [ ] 5.5  Implementar routes/interactionRoutes.ts
-  [ ] 5.6  Implementar services/dashboardService.ts (Promise.all)
-  [ ] 5.7  Implementar controllers/dashboardController.ts
-  [ ] 5.8  Implementar routes/dashboardRoutes.ts
-  [ ] 5.9  Testar: interações + verificar que GET /dashboard retorna dados corretos
-
-Entregas desta etapa:
-  ✓ Interações vinculadas ao lead (verificar ownership do lead antes)
-  ✓ Dashboard com 4 métricas em uma única request (Promise.all)
-
-Prompt para a IA:
-  "Implemente interações (Seção 7.3) e dashboard (Seção 7.5).
-  No dashboard, usar Promise.all para executar as 4 queries em paralelo.
-  Verificar sempre que o lead pertence ao req.user.id antes de operar na interação."
-```
-
----
-
-### ─── ETAPA 6 — BACKEND — TESTES (Jest) ──────────────────────
-
-**Objetivo:** Cobertura de testes unitários e integração com Jest.
-
-```
-Passos:
-  [ ] 6.1  Instalar: npm install -D jest ts-jest @types/jest supertest @types/supertest
-  [ ] 6.2  Implementar jest.config.ts
-  [ ] 6.3  Criar tests/setup.ts (limpar banco de teste antes de cada suite)
-  [ ] 6.4  Implementar tests/unit/authService.test.ts
-  [ ] 6.5  Implementar tests/unit/leadService.test.ts
-  [ ] 6.6  Implementar tests/integration/auth.test.ts (Supertest)
-  [ ] 6.7  Implementar tests/integration/leads.test.ts (Supertest)
-  [ ] 6.8  npm test → todos os testes passando
-  [ ] 6.9  npm run test:coverage → verificar cobertura
-
-Entregas desta etapa:
-  ✓ Testes unitários com mocks (jest.fn(), jest.spyOn())
-  ✓ Testes de integração com banco de teste separado
-  ✓ Teste de segurança: lead de outro usuário retorna 404
-  ✓ Coverage mínimo: services e repositories
-
-Prompt para a IA:
-  "Implemente os testes da Seção 14 usando Jest + ts-jest + Supertest.
-  Unitários: mockar PrismaClient com jest.fn(). Integração: usar banco de teste.
-  Cobrir: register, login com credenciais erradas, CRUD de leads com ownership."
-```
-
----
-
-### ─── ETAPA 7 — DOCKER COMPLETO (postgres + backend + frontend) ─
-
-**Objetivo:** `docker-compose up -d` sobe os 3 serviços com um único comando.
-
-```
-Passos:
-  [ ] 7.1  Criar apps/backend/Dockerfile multi-stage (Seção 12.2)
-           - Stage builder: npm ci → npm run build → prisma generate
-           - Stage runner: somente dist/ + prod deps + prisma client
-           - Usuário não-root (OWASP)
-
-  [ ] 7.2  Adicionar em next.config.ts: output: 'standalone'
-
-  [ ] 7.3  Criar apps/frontend/Dockerfile multi-stage (Seção 12.3)
-           - Stage deps: npm ci
-           - Stage builder: npm run build com ARG NEXT_PUBLIC_API_URL
-           - Stage runner: apenas .next/standalone + static + public
-           - Usuário não-root (OWASP)
-
-  [ ] 7.4  Criar apps/backend/.dockerignore (Seção 12.4)
-  [ ] 7.5  Criar apps/frontend/.dockerignore (Seção 12.5)
-
-  [ ] 7.6  Criar docker-compose.yml na raiz (Seção 12.1)
-           - Serviços: postgres, backend, frontend
-           - Rede interna: mini_crm_net
-           - DATABASE_URL interna usa @postgres:5432 (nome do serviço)
-           - NEXT_PUBLIC_API_URL passada como build arg
-
-  [ ] 7.7  Copiar .env.example → .env na raiz e preencher:
-           POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, JWT_SECRET
-
-  [ ] 7.8  docker-compose up -d --build
-           Verificar: docker-compose ps → 3 serviços "Up"
-
-  [ ] 7.9  Verificar logs: docker-compose logs -f backend
-           Confirmar: "prisma migrate deploy" + "Listening on :3001"
-
-  [ ] 7.10 Verificar logs: docker-compose logs -f frontend
-           Confirmar: "Ready on http://0.0.0.0:3000"
-
-  [ ] 7.11 Rodar seed no container:
-           docker-compose exec backend npx prisma db seed
-
-  [ ] 7.12 Testar no browser: http://localhost:3000
-           Fluxo: login → criar lead → kanban
-
-Entregas desta etapa:
-  ✓ postgres com healthcheck (backend aguarda antes de iniciar)
-  ✓ backend: Dockerfile multi-stage, usuário não-root, migrate no start
-  ✓ frontend: Dockerfile standalone, NEXT_PUBLIC_* como build arg
-  ✓ Comunicação interna via rede Docker (mini_crm_net)
-  ✓ .dockerignore em cada app (node_modules, .env, .next excluídos)
-  ✓ Porta 5432 exposta só para Prisma Studio local
-  ✓ docker-compose down -v documentado para reset de banco
-
-Prompt para a IA:
-  "Implemente o Docker completo conforme Seção 12 (12.1 a 12.6).
-  docker-compose.yml com 3 serviços: postgres, backend, frontend.
-  Dockerfile multi-stage para cada app com usuário não-root.
-  Frontend usa output: standalone no next.config.ts.
-  NEXT_PUBLIC_API_URL passada como ARG no build do frontend.
-  DATABASE_URL interna aponta para @postgres:5432.
-  Gerar .env.example e .dockerignore para cada app."
-```
-
----
-
-### ─── ETAPA 8 — FRONTEND — BASE ───────────────────────────────
-
-**Objetivo:** Next.js 14 App Router com TypeScript funcionando, auth configurada.
-
-```
-Passos:
-  [ ] 8.1  npx create-next-app@latest apps/frontend --typescript --tailwind
-           --app --src-dir --import-alias "@/*"
-  [ ] 8.2  Instalar: axios, zustand, react-hook-form, @hookform/resolvers, zod
-  [ ] 8.3  Implementar services/api.ts (Axios + withCredentials + interceptor 401)
-  [ ] 8.4  Implementar types/index.ts (User, Lead, Interaction, LeadStatus, etc.)
-  [ ] 8.5  Implementar lib/constants.ts (LEAD_STATUS, INTERACTION_TYPES)
-  [ ] 8.6  Implementar lib/utils.ts (cn(), formatDate())
-  [ ] 8.7  Implementar store/authStore.ts (Zustand)
-  [ ] 8.8  Implementar validators/authValidator.ts + leadValidator.ts (Zod + RHF)
-  [ ] 8.9  Criar app/(auth)/login/page.tsx — formulário funcional
-  [ ] 8.10 Criar app/(auth)/register/page.tsx — formulário funcional
-  [ ] 8.11 Implementar app/(private)/layout.tsx (proteção server-side)
-  [ ] 8.12 Testar: login redireciona para /dashboard
-
-Entregas desta etapa:
-  ✓ Next.js App Router com TypeScript
-  ✓ TailwindCSS configurado
-  ✓ Axios com withCredentials: true (envia cookie httpOnly)
-  ✓ Proteção de rotas server-side
-  ✓ Estados de loading e erro nos formulários
-
-Prompt para a IA:
-  "Implemente o frontend base conforme Seção 4.2 e Seção 11.
-  Next.js 14 App Router + TypeScript + TailwindCSS.
-  Axios com withCredentials e interceptor de 401.
-  Zustand para estado do usuário autenticado.
-  Páginas de login e register com React Hook Form + Zod.
-  Layout (private) com verificação server-side do cookie."
-```
-
----
-
-### ─── ETAPA 9 — FRONTEND — FEATURES ──────────────────────────
-
-**Objetivo:** Todas as telas funcionais conectadas à API.
-
-```
-Passos:
-  [ ] 9.1  Implementar components/ui/ (Button, Input, Modal, Badge, Spinner, EmptyState)
-  [ ] 9.2  Implementar components/layout/ (Sidebar, Header)
-  [ ] 9.3  Implementar hooks/useLeads.ts + hooks/useInteractions.ts
-  [ ] 9.4  Implementar app/(private)/leads/page.tsx
-           (lista paginada + busca + filtro por status)
-  [ ] 9.5  Implementar components/leads/LeadForm.tsx (criar + editar)
-  [ ] 9.6  Implementar app/(private)/leads/[id]/page.tsx
-           (detalhes + interações)
-  [ ] 9.7  Instalar @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
-  [ ] 9.8  Implementar app/(private)/kanban/page.tsx
-           (4 colunas + drag and drop + optimistic update)
-  [ ] 9.9  Implementar app/(private)/dashboard/page.tsx
-           (4 cards de estatísticas + últimos leads)
-  [ ] 9.10 Testar: todos os fluxos CRUD + drag and drop funcionando
-
-Entregas desta etapa:
-  ✓ Todo componente com estados: loading / error / empty
-  ✓ Kanban com drag and drop (@dnd-kit) + PATCH de status na API
-  ✓ Optimistic update no Kanban (reverte em caso de erro)
-  ✓ Responsivo mobile-first
-  ✓ Formulários com validação Zod client-side
-
-Prompt para a IA:
-  "Implemente o Kanban conforme Seção 11 usando @dnd-kit/core e @dnd-kit/sortable.
-  Ao soltar um card em outra coluna: 1) atualizar estado local imediatamente,
-  2) chamar PATCH /leads/:id/status, 3) reverter se der erro + exibir mensagem.
-  TailwindCSS. TypeScript. Tratar loading, error e empty em todas as listas."
-```
-
----
-
-### ─── ETAPA 9b — TESTES E2E (Playwright) ─────────────────────────────────
-
-**Objetivo:** Cobertura E2E dos fluxos críticos do frontend rodando em browser real.
-
-```
-Passos:
-  [ ] 9b.1 Instalar @playwright/test + browsers:
-           npm install -D @playwright/test
-           npx playwright install chromium firefox
-  [ ] 9b.2 Implementar playwright.config.ts (Seção 14b)
-  [ ] 9b.3 Implementar e2e/fixtures/auth.fixture.ts
-           (login reutilizável para todos os specs autenticados)
-  [ ] 9b.4 Implementar e2e/auth.spec.ts
-           - redirect /dashboard → /login sem auth
-           - register → redireciona para dashboard
-           - login com credenciais erradas → mensagem de erro
-           - logout → redireciona para /login
-  [ ] 9b.5 Implementar e2e/leads.spec.ts
-           - criar lead → aparece na lista
-           - ver detalhes → dados corretos
-           - deletar → some da lista
-  [ ] 9b.6 Implementar e2e/kanban.spec.ts
-           - 4 colunas visíveis
-           - mover card via select → aparece na coluna correta
-  [ ] 9b.7 Implementar e2e/dashboard.spec.ts
-           - cards de métricas visíveis
-           - total de leads bate com a lista
-  [ ] 9b.8 npm run test:e2e → todos os specs passando
-  [ ] 9b.9 npm run test:e2e:report → verificar relatório HTML
-
-Entregas desta etapa:
-  ✓ playwright.config.ts com webServer (sobe Next.js automaticamente)
-  ✓ Fixture de auth reutilizável entre specs
-  ✓ Cobertura: auth, CRUD de leads, kanban, dashboard
-  ✓ Testes rodando em Chromium, Firefox e mobile (iPhone 13)
-  ✓ Screenshots automáticas em falha
-  ✓ Configurado para CI (retries: 2, forbidOnly)
-
-Prompt para a IA:
-  "Implemente os testes E2E com Playwright conforme Seção 14b.
-  Usar @playwright/test com TypeScript. Criar fixture authenticatedPage
-  que faz login antes de cada teste. Cobrir: auth.spec.ts, leads.spec.ts,
-  kanban.spec.ts e dashboard.spec.ts. playwright.config.ts deve usar
-  webServer para subir o Next.js automaticamente. Testes devem funcionar
-  com o banco de dados populado pelo seed (admin@teste.com / Admin@123)."
-```
-
----
-
-### ─── ETAPA 10 — DEPLOY ───────────────────────────────────────
-
-**Objetivo:** Frontend no Vercel + Backend no Railway com PostgreSQL.
-
-```
-Passos:
-  [ ] 10.1 FRONTEND (Vercel):
-           - Push para GitHub
-           - vercel.com → New Project → selecionar repo → Root: apps/frontend
-           - Adicionar env: NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
-           - Deploy → copiar URL do frontend
-
-  [ ] 10.2 BACKEND (Railway):
-           - railway.app → New Project → Deploy from GitHub
-           - Selecionar repo → Root: apps/backend
-           - Adicionar serviço MySQL (ou usar plugin MySQL do Railway) → copiar DATABASE_URL gerada
-           - Adicionar envs: DATABASE_URL, JWT_SECRET, PORT=3001,
-             CORS_ORIGIN=https://seu-frontend.vercel.app, NODE_ENV=production
-           - Garantir start command: npx prisma migrate deploy && node dist/server.js
-
-  [ ] 10.3 Atualizar CORS_ORIGIN no Railway com URL real do Vercel
-  [ ] 10.4 Atualizar NEXT_PUBLIC_API_URL no Vercel com URL real do Railway
-  [ ] 10.5 Testar fluxo completo em produção: register → login → criar lead
-
-Entregas desta etapa:
-  ✓ URL do frontend (Vercel) funcionando
-  ✓ URL do backend (Railway) respondendo
-  ✓ CORS configurado corretamente entre os dois domínios
-  ✓ Migrations rodando automaticamente no deploy
-```
-
----
-
-### ─── ETAPA 11 — DOCUMENTAÇÃO E ENTREGA ──────────────────────
-
-```
-Passos:
-  [ ] 11.1 Preencher /docs/ai/README.md
-  [ ] 11.2 Preencher /docs/ai/prompts.md (incluir este PROMPT-MESTRE como Prompt 1)
-  [ ] 11.3 Preencher /docs/ai/decisions.md (suas palavras)
-  [ ] 11.4 Preencher /docs/ai/review.md
-  [ ] 11.5 Escrever README.md principal completo (Seção 17)
-  [ ] 11.6 Criar .env.example na raiz e em apps/backend
-  [ ] 11.7 Revisão final do checklist OWASP (Seção 9)
-  [ ] 11.8 Verificar .gitignore (nenhum .env commitado)
-  [ ] 11.9 git log --oneline → revisar commits semânticos
-  [ ] 11.10 Enviar convite para "rodrigoamb" no GitHub
-
-Entregas finais:
-  ✓ Link do repositório GitHub privado
-  ✓ Convite enviado para rodrigoamb
-  ✓ README com instruções de como rodar localmente
-  ✓ .env.example preenchido
-  ✓ /docs/ai/ com os 4 arquivos preenchidos
-  ✓ (Bônus) Links de deploy Vercel + Railway
-```
+### 📊 MAPA DE COMMITS — RESUMO TOTAL (ESTRATÉGICO)
+
+| Etapa | Descrição | Commits |
+| --- | --- | --- |
+| 1 | Banco MySQL + Prisma | 2 |
+| 2 | Backend fundação | 3 |
+| 3 | Autenticação | 2 |
+| 4 | Leads | 2 |
+| 5 | Interações + Dashboard | 2 |
+| 6 | Testes backend | 2 |
+| 7 | Docker (5 serviços) | 3 |
+| 8 | Frontend base + auth | 3 |
+| 9 | Frontend features + design responsivo | 3 |
+| 9b | E2E Playwright | 2 |
+| 10 | Deploy | 1 |
+| 11 | Documentação e entrega | 2 |
+| TOTAL |  | ~27 commits estratégicos |
+
+> Regra prática: commit suficiente para contar história técnica, sem micro-fragmentar demais.
 
 ---
 
