@@ -75,7 +75,7 @@ mini-crm-leads/
 │       ├── prompts.md     # Prompts utilizados
 │       ├── decisions.md   # Decisões técnicas
 │       └── review.md      # Revisão do código gerado
-├── docker-compose.yml     # PostgreSQL + Backend
+├── docker-compose.yml     # PostgreSQL + Backend + Frontend (3 serviços)
 ├── .env.example           # Variáveis de ambiente de referência
 ├── .gitignore
 └── README.md              # Documentação principal
@@ -680,12 +680,22 @@ Toda resposta da API deve seguir este contrato:
 ### cookieOptions.ts
 
 ```ts
-// Cookie httpOnly — protege contra XSS (OWASP A02)
-{
-  httpOnly: true,           // JavaScript não acessa o cookie
+import type { CookieOptions } from 'express'
+
+/**
+ * Opções do cookie JWT httpOnly.
+ * Tipagem explícita CookieOptions garante valores corretos em compile time.
+ */
+export const cookieOptions: CookieOptions = {
+  httpOnly: true,            // JavaScript não acessa o cookie (OWASP A02)
   secure: process.env.NODE_ENV === 'production', // HTTPS em produção
-  sameSite: 'strict',       // Proteção contra CSRF
-  maxAge: 7 * 24 * 60 * 60 * 1000  // 7 dias em ms
+  sameSite: 'strict' as const, // Proteção contra CSRF
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias em ms
+}
+
+export const clearCookieOptions: CookieOptions = {
+  ...cookieOptions,
+  maxAge: 0, // Usada no logout para limpar o cookie
 }
 ```
 
@@ -701,9 +711,11 @@ Toda resposta da API deve seguir este contrato:
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   PORT: z.string().default("3001"),
-  DATABASE_URL: z.string().url(),
+  // ATENÇÃO: z.string().url() rejeita postgresql:// (valida só http/https)
+  // Usar startsWith para aceitar URLs PostgreSQL sem falso-positivo
+  DATABASE_URL: z.string().min(10).startsWith("postgresql://"),
   JWT_SECRET: z.string().min(32), // mínimo 32 chars para segurança
-  CORS_ORIGIN: z.string().url(),
+  CORS_ORIGIN: z.string().url(),  // CORS_ORIGIN é http(s):// — .url() correto aqui
 });
 ```
 
@@ -904,6 +916,15 @@ export class AppError extends Error {
  * @param {Function} fn - Função assíncrona do controller.
  * @returns {RequestHandler} Handler do Express com captura de erros.
  */
+import type { Request, Response, NextFunction, RequestHandler } from 'express'
+
+/** Tipo local para handlers assíncronos — evita dependência de tipo externo não declarado */
+type AsyncRequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<void | Response>
+
 export const asyncHandler =
   (fn: AsyncRequestHandler): RequestHandler =>
   (req, res, next) =>
@@ -1030,7 +1051,10 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
-      CORS_ORIGIN: http://frontend:3000
+      # ATENÇÃO: CORS_ORIGIN deve ser o que o BROWSER envia no header Origin.
+      # O browser acessa o frontend via http://localhost:3000 (porta exposta no host),
+      # NUNCA via http://frontend:3000 (nome interno do container Docker).
+      CORS_ORIGIN: http://localhost:3000
     ports:
       - "3001:3001"
     networks:
@@ -1094,7 +1118,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Instala apenas dependências de produção
+# ATENÇÃO: 'prisma' CLI deve estar em 'dependencies' (não devDependencies)
+# para ficar disponível aqui. O CMD precisa de 'npx prisma migrate deploy'.
+# No package.json do backend garantir:
+#   "dependencies": { "prisma": "^5.x.x", "@prisma/client": "^5.x.x" }
+# Instala dependências de produção (prisma incluído pois está em dependencies)
 COPY package*.json ./
 RUN npm ci --frozen-lockfile --omit=dev
 
@@ -1250,6 +1278,14 @@ POSTGRES_DB=mini_crm_leads
 # ─── AUTH ─────────────────────────────────────────────────────────
 # Gerar com: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 JWT_SECRET=your-super-secret-key-minimum-32-chars-here
+
+# ─── CORS (browser origin — não nome do container) ────────────────
+# ATENÇÃO: deve ser a URL que o BROWSER usa para acessar o frontend
+CORS_ORIGIN=http://localhost:3000
+
+# ─── NEXT.JS (build arg para Docker) ─────────────────────────────
+# URL pública do backend — acessada pelo browser, não pelo container
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
 ### apps/backend/.env.example — desenvolvimento local (sem Docker)
@@ -1304,7 +1340,7 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  setupFilesAfterFramework: ["<rootDir>/tests/setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"], // ATENÇÃO: 'setupFilesAfterFramework' não existe — o correto é 'setupFilesAfterEnv'
   clearMocks: true,
   collectCoverageFrom: ["src/**/*.ts", "!src/server.ts"],
 };
@@ -1317,6 +1353,18 @@ export default config;
 ```bash
 npm install -D jest ts-jest @types/jest supertest @types/supertest
 ```
+
+> **Atenção:** Criar também `apps/backend/.env.test` (ou configurar `NODE_ENV=test` + `DATABASE_URL_TEST`)
+> para apontar para um banco separado nos testes de integração:
+> ```env
+> # apps/backend/.env.test
+> NODE_ENV=test
+> DATABASE_URL=postgresql://postgres:changeme@localhost:5432/mini_crm_leads_test
+> JWT_SECRET=test-secret-key-minimum-32-chars-here
+> CORS_ORIGIN=http://localhost:3000
+> PORT=3002
+> ```
+> O `jest.config.ts` deve carregar esse arquivo com `globalSetup` ou a lib `dotenv` no `tests/setup.ts`.
 
 ### Estrutura dos testes
 
@@ -1425,7 +1473,7 @@ test(leads): add unit tests for LeadService
 test(auth): add integration tests for auth routes
 test(e2e): add Playwright E2E specs for auth, leads and kanban
 chore(playwright): configure playwright with chromium, firefox and mobile
-chore(docker): add docker-compose with postgres and backend
+chore(docker): add docker-compose with postgres, backend and frontend
 docs(ai): add AI usage documentation
 chore: initial monorepo structure
 ```
@@ -1442,7 +1490,8 @@ O `README.md` na raiz do projeto deve conter:
 4. **Instalação** — `git clone`, `npm install` em cada app
 5. **Configuração de variáveis** — Copiar `.env.example`, preencher valores
 6. **Rodar com Docker** — `docker-compose up -d`
-7. **Rodar migrations** — `npx prisma migrate dev`
+7. **Rodar migrations (desenvolvimento local)** — `npx prisma migrate dev`
+   **Rodar migrations (Docker / produção)** — `npx prisma migrate deploy` (já executado automaticamente no CMD do container)
 8. **Rodar seed** — `npx prisma db seed`
 9. **Rodar backend** — `npm run dev` em `apps/backend`
 10. **Rodar frontend** — `npm run dev` em `apps/frontend`
@@ -1540,8 +1589,12 @@ Prompt para a IA:
 
 ```
 Passos:
-  [ ] 2.1  Instalar dependências: express, helmet, cors, cookie-parser,
-           express-rate-limit, jsonwebtoken, bcrypt, zod, @types/*
+  [ ] 2.1  Instalar dependências de produção:
+           npm install express helmet cors cookie-parser express-rate-limit jsonwebtoken bcrypt zod prisma @prisma/client
+           # ATENÇÃO: 'prisma' vai em dependencies (não devDependencies) para o Docker funcionar
+
+           Instalar @types e ferramentas de desenvolvimento:
+           npm install -D typescript ts-node-dev @types/node @types/express @types/cors @types/cookie-parser @types/jsonwebtoken @types/bcrypt
   [ ] 2.2  Configurar tsconfig.json do backend
   [ ] 2.3  Implementar config/env.ts (validação Zod de env vars)
   [ ] 2.4  Implementar config/database.ts (singleton PrismaClient)
