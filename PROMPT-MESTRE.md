@@ -47,8 +47,10 @@ Construir um **Mini CRM de Leads** full-stack como teste técnico para vaga de D
 | Estado global      | Zustand                             | Leve, sem boilerplate, substitui Context para estado de auth                     |
 | HTTP client        | Axios com interceptors              | Tratamento global de erros e tokens                                              |
 | Backend            | Node.js + Express + TypeScript      | Stack padrão do teste                                                            |
-| ORM                | Prisma                              | Migrações, tipagem e relações com PostgreSQL                                     |
-| Banco              | PostgreSQL                          | Obrigatório no teste                                                             |
+| ORM                | Prisma                              | Migrações, tipagem e relações com MySQL                                          |
+| Banco              | MySQL 8.0                           | Robusto, amplamente suportado, compatível com Prisma e Railway                   |
+| Admin DB           | phpMyAdmin                          | Interface visual para MySQL no Docker — http://localhost:8081                    |
+| Proxy reverso      | Traefik v3                          | Roteamento Docker — frontend + backend no mesmo host porta 80                    |
 | Autenticação       | JWT em httpOnly Cookie              | Proteção contra XSS (OWASP A02, A07)                                             |
 | Hash de senha      | bcrypt (salt rounds: 12)            | Resistente a brute-force                                                         |
 | Validação backend  | Zod                                 | Reaproveitamento de schemas com frontend                                         |
@@ -56,9 +58,9 @@ Construir um **Mini CRM de Leads** full-stack como teste técnico para vaga de D
 | Headers seguros    | helmet                              | OWASP A05 Security Misconfiguration                                              |
 | Testes backend     | Jest + ts-jest + Supertest          | Unitários e integração no backend — ecossistema maduro, sem config extra para TS |
 | Testes E2E         | Playwright + @playwright/test       | Testes end-to-end do frontend — fluxos reais no browser (Chromium/Firefox)       |
-| Containerização    | Docker Compose                      | Diferencial do teste                                                             |
+| Containerização    | Docker Compose + Traefik v3         | 5 serviços: Traefik + MySQL + phpMyAdmin + Backend + Frontend                    |
 | Deploy frontend    | Vercel                              | Zero config com Next.js                                                          |
-| Deploy backend     | Railway                             | PostgreSQL + Express em container                                                |
+| Deploy backend     | Railway                             | MySQL + Express em container                                                     |
 
 ---
 
@@ -75,7 +77,7 @@ mini-crm-leads/
 │       ├── prompts.md     # Prompts utilizados
 │       ├── decisions.md   # Decisões técnicas
 │       └── review.md      # Revisão do código gerado
-├── docker-compose.yml     # PostgreSQL + Backend + Frontend (3 serviços)
+├── docker-compose.yml     # Traefik + MySQL + phpMyAdmin + Backend + Frontend (5 serviços)
 ├── .env.example           # Variáveis de ambiente de referência
 ├── .gitignore
 └── README.md              # Documentação principal
@@ -242,7 +244,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -711,9 +713,9 @@ export const clearCookieOptions: CookieOptions = {
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   PORT: z.string().default("3001"),
-  // ATENÇÃO: z.string().url() rejeita postgresql:// (valida só http/https)
-  // Usar startsWith para aceitar URLs PostgreSQL sem falso-positivo
-  DATABASE_URL: z.string().min(10).startsWith("postgresql://"),
+  // ATENÇÃO: z.string().url() rejeita mysql:// (valida só http/https)
+  // Usar startsWith para aceitar URLs MySQL sem falso-positivo
+  DATABASE_URL: z.string().min(10).startsWith("mysql://"),
   JWT_SECRET: z.string().min(32), // mínimo 32 chars para segurança
   CORS_ORIGIN: z.string().url(), // CORS_ORIGIN é http(s):// — .url() correto aqui
 });
@@ -775,9 +777,10 @@ Implementar e garantir cada item abaixo:
     ...(status && { status }),
     ...(search && {
       OR: [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { company: { contains: search, mode: "insensitive" } },
+        // MySQL utf8mb4_unicode_ci é case-insensitive por padrão — sem mode:"insensitive"
+        { name: { contains: search } },
+        { email: { contains: search } },
+        { company: { contains: search } },
       ],
     }),
   };
@@ -792,11 +795,11 @@ Implementar e garantir cada item abaixo:
 - [ ] **Sem** permissão `DROP`, `ALTER`, `CREATE`, `TRUNCATE` para o usuário da aplicação
 - [ ] Configurar no `docker-compose.yml` e documentar no `.env.example`:
   ```sql
-  -- Executar no seed ou migration inicial:
+  -- Executar no seed ou migration inicial (MySQL 8.0):
   -- Criar usuário restrito para a aplicação
-  CREATE USER app_user WITH PASSWORD 'senha_app';
-  GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
-  GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;
+  CREATE USER 'app_user'@'%' IDENTIFIED BY 'senha_app';
+  GRANT SELECT, INSERT, UPDATE, DELETE ON mini_crm_leads.* TO 'app_user'@'%';
+  FLUSH PRIVILEGES;
   ```
 
 #### Camada 4 — Logs e detecção
@@ -1006,8 +1009,9 @@ if (data.length === 0) return <EmptyState message="Nenhum lead encontrado" />;
 
 ## [SEÇÃO 12] DOCKER — CONFIGURAÇÃO COMPLETA
 
-> Um único `docker-compose up -d` sobe **PostgreSQL + Backend + Frontend**.
-> Cada serviço tem seu Dockerfile próprio. Comunicação interna via rede Docker.
+> Um único `docker-compose up -d` sobe **Traefik + MySQL + phpMyAdmin + Backend + Frontend**.
+> Cada serviço tem seu próprio container. Traefik roteia o tráfego HTTP.
+> Frontend e Backend ficam no mesmo host (`localhost`) separados por rota de path.
 
 ### 12.1 docker-compose.yml (raiz do projeto)
 
@@ -1015,28 +1019,69 @@ if (data.length === 0) return <EmptyState message="Nenhum lead encontrado" />;
 version: "3.8"
 
 services:
-  # ─── BANCO DE DADOS ──────────────────────────────────────────────
-  postgres:
-    image: postgres:15-alpine
-    container_name: mini_crm_postgres
+
+  # ─── TRAEFIK — REVERSE PROXY ────────────────────────────────────
+  # Roteia http://localhost → frontend e http://localhost/api → backend
+  # Dashboard em http://localhost:8080 (apenas desenvolvimento)
+  traefik:
+    image: traefik:v3.0
+    container_name: mini_crm_traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"                        # dashboard sem auth — somente dev
+      - "--providers.docker=true"                    # descobre serviços pelos labels
+      - "--providers.docker.exposedbydefault=false"  # expõe só quem tem label enable=true
+      - "--entrypoints.web.address=:80"              # único entrypoint HTTP na porta 80
+    ports:
+      - "80:80"      # tráfego HTTP principal
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # lê eventos Docker (read-only)
+    networks:
+      - mini_crm_net
+
+  # ─── BANCO DE DADOS MySQL ───────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: mini_crm_mysql
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "5432:5432" # exposto apenas para debug local / Prisma Studio
+      - "3306:3306"  # exposto apenas para Prisma Studio e ferramentas locais
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
       - mini_crm_net
 
-  # ─── BACKEND ─────────────────────────────────────────────────────
+  # ─── phpMyAdmin — ADMIN WEB DO BANCO ───────────────────────────
+  # Acessível em http://localhost:8081
+  # Login: usuário/senha do MYSQL_USER + MYSQL_PASSWORD
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: mini_crm_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mysql          # nome do serviço MySQL na rede Docker
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0         # desabilita login em servidor arbitrário
+    ports:
+      - "8081:80"  # http://localhost:8081
+    networks:
+      - mini_crm_net
+
+  # ─── BACKEND — Node.js + Express ────────────────────────────────
   backend:
     build:
       context: ./apps/backend
@@ -1044,38 +1089,47 @@ services:
     container_name: mini_crm_backend
     restart: unless-stopped
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Usa nome do serviço MySQL como host (rede interna Docker)
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
       JWT_SECRET: ${JWT_SECRET}
-      # ATENÇÃO: CORS_ORIGIN deve ser o que o BROWSER envia no header Origin.
-      # O browser acessa o frontend via http://localhost:3000 (porta exposta no host),
-      # NUNCA via http://frontend:3000 (nome interno do container Docker).
-      CORS_ORIGIN: http://localhost:3000
-    ports:
-      - "3001:3001"
+      # Com Traefik: browser acessa frontend e backend via http://localhost (porta 80)
+      CORS_ORIGIN: http://localhost
+    # Sem ports expostas: Traefik roteia internamente via labels
+    labels:
+      - "traefik.enable=true"
+      # Rotas com /api têm prioridade (PathPrefix mais específico que raiz)
+      - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=3001"
     networks:
       - mini_crm_net
 
-  # ─── FRONTEND ────────────────────────────────────────────────────
+  # ─── FRONTEND — Next.js ─────────────────────────────────────────
   frontend:
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
       args:
-        # Lê do .env da raiz — sobrescreva para produção (ex: URL do Vercel)
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
+        # Com Traefik: frontend e backend no mesmo origin — /api via Traefik
+        # Sobrescreva com URL pública em produção (ex: https://backend.railway.app/api/v1)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api/v1}
     container_name: mini_crm_frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
       NODE_ENV: production
-    ports:
-      - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      # Captura tudo que NÃO começa com /api (Next.js recebe o restante)
+      - "traefik.http.routers.frontend.rule=Host(`localhost`) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
     networks:
       - mini_crm_net
 
@@ -1084,12 +1138,21 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  mysql_data:
 ```
 
-> **Nota sobre `NEXT_PUBLIC_API_URL`:** O Next.js incorpora variáveis `NEXT_PUBLIC_*` no bundle
-> em build time. Por isso ela é passada como `build arg` — não como env de runtime.
-> Em produção real (Vercel + Railway), substituir pela URL pública do backend.
+> **URLs disponíveis após `docker-compose up -d`:**
+>
+> | URL | Serviço |
+> |-----|---------|
+> | http://localhost | Frontend (Next.js via Traefik) |
+> | http://localhost/api/v1 | Backend API (Express via Traefik) |
+> | http://localhost:8080 | Traefik Dashboard |
+> | http://localhost:8081 | phpMyAdmin (MySQL) |
+>
+> **Nota sobre `NEXT_PUBLIC_API_URL`:** Variável baked no bundle em build time.
+> Com Traefik: usar `http://localhost/api/v1` (mesmo host, sem porta).
+> Em produção (Railway): substituir pela URL pública do backend.
 
 ---
 
@@ -1238,14 +1301,18 @@ playwright-report
 ### 12.6 Comandos de operação
 
 ```bash
-# Subir tudo (postgres + backend + frontend)
+# Subir todos os 5 serviços (traefik + mysql + phpmyadmin + backend + frontend)
 docker-compose up -d
 
-# Ver logs em tempo real
+# Acompanhar todos os logs em tempo real
 docker-compose logs -f
 
 # Ver logs de um serviço específico
 docker-compose logs -f backend
+docker-compose logs -f mysql
+
+# Verificar status de todos os containers
+docker-compose ps
 
 # Reconstruir imagem após mudança de código
 docker-compose up -d --build backend
@@ -1254,15 +1321,25 @@ docker-compose up -d --build frontend
 # Rodar seed dentro do container do backend
 docker-compose exec backend npx prisma db seed
 
-# Abrir Prisma Studio (conecta no container postgres)
-DATABASE_URL=postgresql://postgres:changeme@localhost:5432/mini_crm_leads npx prisma studio
+# Abrir Prisma Studio (conecta no MySQL local — requer mysql rodando)
+DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_leads npx prisma studio
+
+# Acessar shell do container MySQL
+docker-compose exec mysql mysql -u app -pchangeme mini_crm_leads
 
 # Parar tudo (preserva volume do banco)
 docker-compose down
 
-# Parar e remover volume (reseta banco)
+# Parar e remover volumes (reseta banco — DESTRUTIVO)
 docker-compose down -v
 ```
+
+> **Serviços e portas disponíveis:**
+> - `http://localhost` → Frontend (via Traefik porta 80)
+> - `http://localhost/api/v1` → Backend API (via Traefik porta 80)
+> - `http://localhost:8080` → Traefik Dashboard
+> - `http://localhost:8081` → phpMyAdmin (login: `app` / `changeme`)
+> - `localhost:3306` → MySQL direto (para Prisma Studio e ferramentas locais)
 
 ---
 
@@ -1271,22 +1348,23 @@ docker-compose down -v
 ### .env.example (raiz) — usado pelo docker-compose
 
 ```env
-# ─── BANCO DE DADOS (docker-compose) ─────────────────────────────
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=changeme
-POSTGRES_DB=mini_crm_leads
+# ─── BANCO DE DADOS MySQL (docker-compose) ───────────────────────
+MYSQL_ROOT_PASSWORD=rootchangeme
+MYSQL_DATABASE=mini_crm_leads
+MYSQL_USER=app
+MYSQL_PASSWORD=changeme
 
 # ─── AUTH ─────────────────────────────────────────────────────────
 # Gerar com: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 JWT_SECRET=your-super-secret-key-minimum-32-chars-here
 
-# ─── CORS (browser origin — não nome do container) ────────────────
-# ATENÇÃO: deve ser a URL que o BROWSER usa para acessar o frontend
-CORS_ORIGIN=http://localhost:3000
+# ─── CORS ─────────────────────────────────────────────────────────
+# Com Traefik: browser acessa frontend e backend pelo mesmo origin (http://localhost)
+CORS_ORIGIN=http://localhost
 
 # ─── NEXT.JS (build arg para Docker) ─────────────────────────────
-# URL pública do backend — acessada pelo browser, não pelo container
-NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+# Com Traefik: mesmo origin do frontend — /api roteado pelo Traefik
+NEXT_PUBLIC_API_URL=http://localhost/api/v1
 ```
 
 ### apps/backend/.env.example — desenvolvimento local (sem Docker)
@@ -1295,30 +1373,45 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 NODE_ENV=development
 PORT=3001
 
-# Local (sem Docker): aponta para localhost
-DATABASE_URL=postgresql://postgres:changeme@localhost:5432/mini_crm_leads
+# Local (sem Docker): aponta para MySQL rodando localmente
+DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_leads
 
-# Docker: usar o nome do serviço como host
-# DATABASE_URL=postgresql://postgres:changeme@postgres:5432/mini_crm_leads
+# Docker: usar nome do serviço como host (rede interna Docker)
+# DATABASE_URL=mysql://app:changeme@mysql:3306/mini_crm_leads
 
 JWT_SECRET=your-super-secret-key-minimum-32-chars-here
+
+# Sem Docker (npm run dev): frontend em :3000, sem Traefik
+CORS_ORIGIN=http://localhost:3000
+```
+
+### apps/backend/.env.test — banco de teste isolado
+
+```env
+NODE_ENV=test
+PORT=3002
+DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_test
+JWT_SECRET=test-secret-key-minimum-32-chars-for-tests
 CORS_ORIGIN=http://localhost:3000
 ```
 
 ### apps/frontend/.env.local.example
 
 ```env
-# Local (sem Docker): aponta para localhost
+# Local (sem Docker): aponta para backend em :3001 diretamente
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 
-# Docker: browser acessa o backend pela porta exposta no host
-# NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+# Com Docker + Traefik: mesma origin (porta 80) — sem porta no URL
+# NEXT_PUBLIC_API_URL=http://localhost/api/v1
 ```
 
-> **Diferença Docker vs local:**
+> **Resumo das diferenças Docker vs local:**
 >
-> - No Docker, a comunicação **interna** (backend → postgres) usa o nome do serviço: `@postgres:5432`
-> - O **browser** sempre acessa pelo `localhost` (porta exposta no host), nunca pelo nome do container
+> | Contexto | DATABASE_URL | CORS_ORIGIN | NEXT_PUBLIC_API_URL |
+> |----------|-------------|-------------|---------------------|
+> | Local (npm run dev) | `mysql://...@localhost:3306/...` | `http://localhost:3000` | `http://localhost:3001/api/v1` |
+> | Docker + Traefik | `mysql://...@mysql:3306/...` | `http://localhost` | `http://localhost/api/v1` |
+> | Produção (Railway/Vercel) | URL gerada pelo Railway | `https://frontend.vercel.app` | `https://backend.railway.app/api/v1` |
 
 ---
 
@@ -1776,7 +1869,7 @@ O `README.md` na raiz do projeto deve conter:
 
 1. **Descrição do projeto** — O que é o Mini CRM de Leads
 2. **Tecnologias** — Stack completa com versões
-3. **Pré-requisitos** — Node.js, Docker, PostgreSQL
+3. **Pré-requisitos** — Node.js, Docker (inclui MySQL e phpMyAdmin via Compose)
 4. **Instalação** — `git clone`, `npm install` em cada app
 5. **Configuração de variáveis** — Copiar `.env.example`, preencher valores
 6. **Rodar com Docker** — `docker-compose up -d`
@@ -1827,7 +1920,7 @@ O `README.md` na raiz do projeto deve conter:
 ### Backend — Railway
 
 1. Criar projeto no railway.app
-2. Adicionar serviço PostgreSQL
+2. Adicionar serviço MySQL (ou usar plugin MySQL do Railway) → copiar DATABASE_URL gerada
 3. Adicionar serviço do repositório GitHub (pasta `apps/backend`)
 4. Configurar variáveis de ambiente (`DATABASE_URL` gerado pelo Railway, `JWT_SECRET`, `CORS_ORIGIN`)
 5. Garantir que o Dockerfile faz `prisma migrate deploy` no start
@@ -1837,13 +1930,594 @@ O `README.md` na raiz do projeto deve conter:
 ## [SEÇÃO 20] ORDEM DE EXECUÇÃO POR ETAPAS
 
 > Execute **uma etapa por vez** na IA. Só avance quando a etapa atual estiver funcionando.
-> Use o prompt de cada etapa individualmente — não cole tudo junto.
+> **COMMITS ATÔMICOS:** Cada passo marcado com `git commit` deve ser commitado individualmente.
+> Um commit por grupo de pacotes instalados, por arquivo de configuração, por feature implementada.
 
 ---
 
 ### ─── ETAPA 1 — BANCO DE DADOS ───────────────────────────────
 
-**Objetivo:** Banco configurado, schema criado, migrations rodando.
+**Objetivo:** MySQL configurado, schema criado, migrations rodando.
+
+```
+Passos + Commits:
+
+  [ ] 1.1  Criar pasta do monorepo: mini-crm-leads/
+           git commit: "chore: create monorepo folder structure"
+
+  [ ] 1.2  Criar apps/backend/ com npm init --yes
+           git commit: "chore(backend): npm init --yes + configure package.json base"
+
+  [ ] 1.3  Instalar Prisma:
+           npm install prisma @prisma/client
+           git commit: "chore(deps): install prisma @prisma/client"
+
+  [ ] 1.4  npx prisma init → configurar datasource mysql em schema.prisma
+           git commit: "chore(prisma): npx prisma init + configure datasource mysql"
+
+  [ ] 1.5  Implementar schema.prisma completo (User, Lead, Interaction, enums)
+           git commit: "feat(schema): implement prisma schema User Lead Interaction enums"
+
+  [ ] 1.6  Criar apps/backend/.env.example com DATABASE_URL mysql://...
+           (o .env real não é commitado — está no .gitignore)
+           git commit: "chore(env): create apps/backend/.env.example with DATABASE_URL"
+
+  [ ] 1.7  npx prisma migrate dev --name init → gera tabelas no banco
+           git commit: "chore(migration): add initial prisma migration"
+
+  [ ] 1.8  Implementar prisma/seed.ts com 1 usuário + 3 leads + 2 interações
+           git commit: "feat(seed): implement prisma/seed.ts with test data"
+
+  [ ] 1.9  Adicionar config "prisma.seed" no package.json (obrigatório para npx prisma db seed)
+           git commit: "chore(seed): configure prisma.seed script in package.json"
+
+  [ ] 1.10 npx prisma db seed → verificar dados no banco
+           (sem commit — validação)
+  [ ] 1.11 npx prisma studio → conferir visualmente
+           (sem commit — validação)
+
+Entregas:
+  ✓ schema.prisma com relações, enums e onDelete Cascade
+  ✓ Migration em prisma/migrations/ commitada
+  ✓ Seed: admin@teste.com / Admin@123
+  ✓ DATABASE_URL no .env.example
+  ✓ 7 commits atômicos
+```
+
+---
+
+### ─── ETAPA 2 — BACKEND — FUNDAÇÃO ───────────────────────────
+
+**Objetivo:** Express rodando com estrutura de camadas, erros tratados, env validada.
+
+```
+Passos + Commits:
+
+  [ ] 2.1  Instalar grupo servidor HTTP:
+           npm install express cors cookie-parser
+           git commit: "chore(deps): install express cors cookie-parser"
+
+  [ ] 2.2  Instalar grupo segurança:
+           npm install helmet express-rate-limit
+           git commit: "chore(deps): install helmet express-rate-limit"
+
+  [ ] 2.3  Instalar grupo autenticação:
+           npm install jsonwebtoken bcrypt
+           git commit: "chore(deps): install jsonwebtoken bcrypt"
+
+  [ ] 2.4  Instalar grupo validação + ORM:
+           npm install zod prisma @prisma/client
+           # ATENÇÃO: prisma vai em dependencies (não devDeps) — necessário no Docker
+           git commit: "chore(deps): install zod prisma @prisma/client (in dependencies)"
+
+  [ ] 2.5  Instalar TypeScript + ferramentas dev:
+           npm install -D typescript ts-node-dev @types/node @types/express @types/cors @types/cookie-parser
+           git commit: "chore(devdeps): install typescript ts-node-dev @types/node @types/express"
+
+  [ ] 2.6  Instalar @types restantes:
+           npm install -D @types/jsonwebtoken @types/bcrypt
+           git commit: "chore(devdeps): install @types/jsonwebtoken @types/bcrypt"
+
+  [ ] 2.7  Configurar tsconfig.json (outDir: ./dist — obrigatório para o Docker)
+           git commit: "chore(config): configure tsconfig.json with outDir dist"
+
+  [ ] 2.8  Adicionar scripts no package.json:
+           "build": "tsc", "dev": "ts-node-dev...", "start": "node dist/server.js", "test": "jest"
+           git commit: "chore(config): add package.json scripts build dev start test"
+
+  [ ] 2.9  Implementar config/env.ts (validação Zod — DATABASE_URL começa com mysql://)
+           git commit: "feat(config): implement config/env.ts with Zod validation"
+
+  [ ] 2.10 Implementar config/database.ts (singleton PrismaClient)
+           git commit: "feat(config): implement config/database.ts Prisma singleton"
+
+  [ ] 2.11 Implementar utils/AppError.ts
+           git commit: "feat(utils): implement utils/AppError.ts"
+
+  [ ] 2.12 Implementar utils/asyncHandler.ts
+           git commit: "feat(utils): implement utils/asyncHandler.ts"
+
+  [ ] 2.13 Implementar utils/cookieOptions.ts
+           git commit: "feat(utils): implement utils/cookieOptions.ts"
+
+  [ ] 2.14 Implementar middlewares/errorMiddleware.ts
+           git commit: "feat(middleware): implement middlewares/errorMiddleware.ts"
+
+  [ ] 2.15 Implementar middlewares/rateLimitMiddleware.ts
+           git commit: "feat(middleware): implement middlewares/rateLimitMiddleware.ts"
+
+  [ ] 2.16 Implementar app.ts (helmet, cors, cookie-parser, router)
+           git commit: "feat(app): implement app.ts with helmet cors cookie-parser"
+
+  [ ] 2.17 Implementar server.ts (listen + graceful shutdown)
+           git commit: "feat(server): implement server.ts with graceful shutdown"
+
+  [ ] 2.18 Testar: npm run dev → servidor respondendo em :3001
+           (sem commit — validação)
+
+Entregas:
+  ✓ Express rodando com TypeScript
+  ✓ helmet + cors + rate-limit ativos
+  ✓ errorMiddleware global funcionando
+  ✓ 16 commits atômicos
+```
+
+---
+
+### ─── ETAPA 3 — BACKEND — AUTENTICAÇÃO ───────────────────────
+
+**Objetivo:** Register, login, logout e /me funcionando com JWT em httpOnly cookie.
+
+```
+Passos + Commits:
+
+  [ ] 3.1  Implementar validators/authValidator.ts
+           git commit: "feat(auth): implement validators/authValidator.ts"
+
+  [ ] 3.2  Implementar types/express.d.ts (extensão req.user)
+           git commit: "feat(auth): implement types/express.d.ts req.user extension"
+
+  [ ] 3.3  Implementar repositories/userRepository.ts
+           git commit: "feat(auth): implement repositories/userRepository.ts"
+
+  [ ] 3.4  Implementar services/authService.ts
+           git commit: "feat(auth): implement services/authService.ts"
+
+  [ ] 3.5  Implementar controllers/authController.ts
+           git commit: "feat(auth): implement controllers/authController.ts"
+
+  [ ] 3.6  Implementar middlewares/authMiddleware.ts (JWT do cookie)
+           git commit: "feat(auth): implement middlewares/authMiddleware.ts"
+
+  [ ] 3.7  Implementar routes/authRoutes.ts + registrar em routes/router.ts
+           git commit: "feat(auth): implement authRoutes.ts + register in router.ts"
+
+  [ ] 3.8  Testar: POST /register, POST /login, GET /me, POST /logout
+           (sem commit — validação)
+
+Entregas:
+  ✓ JWT em httpOnly cookie, bcrypt salt 12, mensagem genérica (OWASP A07)
+  ✓ 7 commits atômicos
+```
+
+---
+
+### ─── ETAPA 4 — BACKEND — LEADS ──────────────────────────────
+
+**Objetivo:** CRUD completo com isolamento por usuário.
+
+```
+Passos + Commits:
+
+  [ ] 4.1  Implementar validators/leadValidator.ts
+           git commit: "feat(leads): implement validators/leadValidator.ts"
+
+  [ ] 4.2  Implementar repositories/leadRepository.ts
+           git commit: "feat(leads): implement repositories/leadRepository.ts"
+
+  [ ] 4.3  Implementar services/leadService.ts
+           git commit: "feat(leads): implement services/leadService.ts"
+
+  [ ] 4.4  Implementar controllers/leadController.ts
+           git commit: "feat(leads): implement controllers/leadController.ts"
+
+  [ ] 4.5  Implementar routes/leadRoutes.ts + PATCH /:id/status + registrar em router.ts
+           git commit: "feat(leads): implement leadRoutes.ts with PATCH status endpoint"
+
+  [ ] 4.6  Testar: CRUD + lead de outro user retorna 404
+           (sem commit — validação)
+
+Entregas:
+  ✓ userId de req.user.id, paginação, filtros, ownership check
+  ✓ 5 commits atômicos
+```
+
+---
+
+### ─── ETAPA 5 — BACKEND — INTERAÇÕES E DASHBOARD ─────────────
+
+**Objetivo:** Interações por lead e dashboard com Promise.all.
+
+```
+Passos + Commits:
+
+  [ ] 5.1  Implementar validators/interactionValidator.ts
+           git commit: "feat(interactions): implement validators/interactionValidator.ts"
+
+  [ ] 5.2  Implementar repositories/interactionRepository.ts
+           git commit: "feat(interactions): implement repositories/interactionRepository.ts"
+
+  [ ] 5.3  Implementar services/interactionService.ts
+           git commit: "feat(interactions): implement services/interactionService.ts"
+
+  [ ] 5.4  Implementar controllers/interactionController.ts
+           git commit: "feat(interactions): implement controllers/interactionController.ts"
+
+  [ ] 5.5  Implementar routes/interactionRoutes.ts + registrar em router.ts
+           git commit: "feat(interactions): implement interactionRoutes.ts"
+
+  [ ] 5.6  Implementar services/dashboardService.ts (Promise.all)
+           git commit: "feat(dashboard): implement dashboardService.ts with Promise.all"
+
+  [ ] 5.7  Implementar controllers/dashboardController.ts + routes/dashboardRoutes.ts
+           git commit: "feat(dashboard): implement dashboardController.ts + dashboardRoutes.ts"
+
+  [ ] 5.8  Testar: interações + GET /dashboard
+           (sem commit — validação)
+
+Entregas:
+  ✓ Ownership verificado antes de operar interações
+  ✓ Dashboard com 4 métricas em uma request
+  ✓ 7 commits atômicos
+```
+
+---
+
+### ─── ETAPA 6 — BACKEND — TESTES (Jest + Supertest) ──────────
+
+**Objetivo:** Cobertura de testes unitários e integração.
+
+```
+Passos + Commits:
+
+  [ ] 6.1  Instalar Jest + ts-jest:
+           npm install -D jest ts-jest @types/jest
+           git commit: "chore(devdeps): install jest ts-jest @types/jest"
+
+  [ ] 6.2  Instalar Supertest:
+           npm install -D supertest @types/supertest
+           git commit: "chore(devdeps): install supertest @types/supertest"
+
+  [ ] 6.3  Implementar jest.config.ts
+           git commit: "chore(jest): implement jest.config.ts"
+
+  [ ] 6.4  Criar tests/setup.ts (limpar banco de teste a cada suite)
+           git commit: "test(setup): implement tests/setup.ts db cleanup"
+
+  [ ] 6.5  Implementar tests/unit/authService.test.ts
+           git commit: "test(unit): implement tests/unit/authService.test.ts"
+
+  [ ] 6.6  Implementar tests/unit/leadService.test.ts
+           git commit: "test(unit): implement tests/unit/leadService.test.ts"
+
+  [ ] 6.7  Implementar tests/integration/auth.test.ts
+           git commit: "test(integration): implement tests/integration/auth.test.ts"
+
+  [ ] 6.8  Implementar tests/integration/leads.test.ts
+           git commit: "test(integration): implement tests/integration/leads.test.ts"
+
+  [ ] 6.9  npm test → todos passando
+           (sem commit — validação)
+
+Entregas:
+  ✓ Unitários com mocks, integração com banco mini_crm_test
+  ✓ Teste de segurança: lead de outro usuário retorna 404
+  ✓ 8 commits atômicos
+```
+
+---
+
+### ─── ETAPA 7 — DOCKER (Traefik + MySQL + phpMyAdmin + Backend + Frontend) ─
+
+**Objetivo:** `docker-compose up -d` sobe os 5 serviços com um único comando.
+
+```
+Passos + Commits:
+
+  [ ] 7.1  Criar apps/backend/Dockerfile multi-stage (Seção 12.2)
+           git commit: "chore(docker): implement apps/backend/Dockerfile multi-stage"
+
+  [ ] 7.2  Criar apps/backend/.dockerignore
+           git commit: "chore(docker): implement apps/backend/.dockerignore"
+
+  [ ] 7.3  Adicionar output: 'standalone' em next.config.ts
+           git commit: "chore(next): add output standalone in next.config.ts"
+
+  [ ] 7.4  Criar apps/frontend/Dockerfile multi-stage standalone (Seção 12.3)
+           git commit: "chore(docker): implement apps/frontend/Dockerfile standalone"
+
+  [ ] 7.5  Criar apps/frontend/.dockerignore
+           git commit: "chore(docker): implement apps/frontend/.dockerignore"
+
+  [ ] 7.6  Criar docker-compose.yml na raiz com os 5 serviços (Seção 12.1):
+           traefik → mysql → phpmyadmin → backend → frontend
+           DATABASE_URL interna: mysql://...@mysql:3306/...
+           Traefik roteia: Host(localhost)+PathPrefix(/api) → backend
+                           Host(localhost)+!PathPrefix(/api) → frontend
+           git commit: "chore(docker): implement docker-compose.yml with 5 services"
+
+  [ ] 7.7  Criar .env.example na raiz (MYSQL_ROOT_PASSWORD, MYSQL_USER, etc.)
+           git commit: "chore(env): create root .env.example for docker-compose"
+
+  [ ] 7.8  Copiar .env.example → .env e preencher valores
+           (não commitar o .env)
+
+  [ ] 7.9  docker-compose up -d --build
+           Verificar: docker-compose ps → 5 serviços "Up"
+
+  [ ] 7.10 Verificar URLs:
+           http://localhost       → frontend ✓
+           http://localhost/api/v1 → backend ✓
+           http://localhost:8080  → Traefik Dashboard ✓
+           http://localhost:8081  → phpMyAdmin ✓
+
+  [ ] 7.11 docker-compose exec backend npx prisma db seed
+
+Entregas:
+  ✓ Traefik roteia frontend + backend no mesmo host porta 80
+  ✓ MySQL com healthcheck — backend só sobe quando banco estiver pronto
+  ✓ phpMyAdmin em :8081 para inspeção visual do banco
+  ✓ Backend: multi-stage, usuário não-root, migrate no start
+  ✓ Frontend: standalone, NEXT_PUBLIC_* como build arg
+  ✓ 7 commits atômicos
+
+Prompt para a IA:
+  "Implemente o Docker completo conforme Seção 12 (12.1 a 12.6).
+  docker-compose.yml com 5 serviços: traefik, mysql, phpmyadmin, backend, frontend.
+  Traefik v3: PathPrefix(/api) → backend:3001, demais → frontend:3000.
+  Dockerfile multi-stage para cada app com usuário não-root.
+  DATABASE_URL interna: mysql://...@mysql:3306/..."
+```
+
+---
+
+### ─── ETAPA 8 — FRONTEND — BASE ───────────────────────────────
+
+**Objetivo:** Next.js 14 App Router com TypeScript funcionando, auth configurada.
+
+```
+Passos + Commits:
+
+  [ ] 8.1  Scaffoldar Next.js:
+           npx create-next-app@latest apps/frontend --typescript --tailwind --app --src-dir --import-alias "@/*"
+           git commit: "chore(frontend): scaffold Next.js 14 TypeScript TailwindCSS App Router"
+
+  [ ] 8.2  Instalar Axios + Zustand:
+           npm install axios zustand
+           git commit: "chore(deps): install axios zustand"
+
+  [ ] 8.3  Instalar React Hook Form + Zod:
+           npm install react-hook-form @hookform/resolvers zod
+           git commit: "chore(deps): install react-hook-form @hookform/resolvers zod"
+
+  [ ] 8.4  Implementar services/api.ts (Axios + withCredentials + interceptor 401)
+           git commit: "feat(api): implement services/api.ts withCredentials interceptor"
+
+  [ ] 8.5  Implementar types/index.ts (User, Lead, Interaction, LeadStatus, etc.)
+           git commit: "feat(types): implement types/index.ts shared types"
+
+  [ ] 8.6  Implementar lib/constants.ts + lib/utils.ts
+           git commit: "feat(lib): implement lib/constants.ts and lib/utils.ts"
+
+  [ ] 8.7  Implementar store/authStore.ts (Zustand)
+           git commit: "feat(store): implement store/authStore.ts Zustand"
+
+  [ ] 8.8  Implementar validators/authValidator.ts + leadValidator.ts
+           git commit: "feat(validators): implement authValidator.ts and leadValidator.ts"
+
+  [ ] 8.9  Implementar app/(auth)/login/page.tsx
+           git commit: "feat(auth): implement app/(auth)/login/page.tsx"
+
+  [ ] 8.10 Implementar app/(auth)/register/page.tsx
+           git commit: "feat(auth): implement app/(auth)/register/page.tsx"
+
+  [ ] 8.11 Implementar app/(private)/layout.tsx (proteção server-side)
+           git commit: "feat(layout): implement app/(private)/layout.tsx server-side guard"
+
+  [ ] 8.12 Testar: login redireciona para /dashboard
+           (sem commit — validação)
+
+Entregas:
+  ✓ Next.js App Router + TypeScript + TailwindCSS
+  ✓ Axios com withCredentials: true
+  ✓ Proteção de rotas server-side
+  ✓ 11 commits atômicos
+```
+
+---
+
+### ─── ETAPA 9 — FRONTEND — FEATURES ──────────────────────────
+
+**Objetivo:** Todas as telas funcionais conectadas à API.
+
+```
+Passos + Commits:
+
+  [ ] 9.1  Implementar components/ui/ (Button, Input, Modal, Badge, Spinner, EmptyState)
+           git commit: "feat(ui): implement components/ui atomic components"
+
+  [ ] 9.2  Implementar components/layout/ (Sidebar, Header, PrivateLayout)
+           git commit: "feat(layout): implement Sidebar Header PrivateLayout"
+
+  [ ] 9.3  Implementar hooks/useLeads.ts
+           git commit: "feat(hooks): implement hooks/useLeads.ts"
+
+  [ ] 9.4  Implementar hooks/useInteractions.ts
+           git commit: "feat(hooks): implement hooks/useInteractions.ts"
+
+  [ ] 9.5  Implementar app/(private)/leads/page.tsx (lista + busca + filtro)
+           git commit: "feat(leads): implement leads list page with search and filter"
+
+  [ ] 9.6  Implementar components/leads/LeadForm.tsx (criar + editar)
+           git commit: "feat(leads): implement LeadForm.tsx create and edit"
+
+  [ ] 9.7  Implementar app/(private)/leads/[id]/page.tsx (detalhes + interações)
+           git commit: "feat(leads): implement lead detail page with interactions"
+
+  [ ] 9.8  Instalar @dnd-kit:
+           npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+           git commit: "chore(deps): install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities"
+
+  [ ] 9.9  Implementar app/(private)/kanban/page.tsx (4 colunas + drag and drop)
+           git commit: "feat(kanban): implement kanban board with dnd-kit drag and drop"
+
+  [ ] 9.10 Implementar app/(private)/dashboard/page.tsx (4 cards + últimos leads)
+           git commit: "feat(dashboard): implement dashboard with stats cards"
+
+  [ ] 9.11 Testar todos os fluxos CRUD + drag and drop
+           (sem commit — validação)
+
+Entregas:
+  ✓ Loading / error / empty em todos os componentes
+  ✓ Kanban com drag and drop + optimistic update
+  ✓ Responsivo mobile-first
+  ✓ 10 commits atômicos
+```
+
+---
+
+### ─── ETAPA 9b — TESTES E2E (Playwright) ─────────────────────
+
+**Objetivo:** Cobertura E2E dos fluxos críticos rodando em browser real.
+
+```
+Passos + Commits:
+
+  [ ] 9b.1 Instalar Playwright:
+           npm install -D @playwright/test
+           npx playwright install chromium firefox
+           git commit: "chore(devdeps): install @playwright/test"
+
+  [ ] 9b.2 Implementar playwright.config.ts (Seção 14b)
+           git commit: "chore(playwright): implement playwright.config.ts"
+
+  [ ] 9b.3 Implementar e2e/fixtures/auth.fixture.ts
+           git commit: "test(e2e): implement e2e/fixtures/auth.fixture.ts"
+
+  [ ] 9b.4 Implementar e2e/auth.spec.ts
+           git commit: "test(e2e): implement e2e/auth.spec.ts"
+
+  [ ] 9b.5 Implementar e2e/leads.spec.ts
+           git commit: "test(e2e): implement e2e/leads.spec.ts"
+
+  [ ] 9b.6 Implementar e2e/kanban.spec.ts
+           git commit: "test(e2e): implement e2e/kanban.spec.ts"
+
+  [ ] 9b.7 Implementar e2e/dashboard.spec.ts
+           git commit: "test(e2e): implement e2e/dashboard.spec.ts"
+
+  [ ] 9b.8 npm run test:e2e → todos os specs passando
+           (sem commit — validação)
+
+Entregas:
+  ✓ Playwright com webServer, Chromium + Firefox + iPhone 13
+  ✓ Fixture de auth reutilizável
+  ✓ 7 commits atômicos
+```
+
+---
+
+### ─── ETAPA 10 — DEPLOY ───────────────────────────────────────
+
+**Objetivo:** Frontend no Vercel + Backend no Railway com MySQL.
+
+```
+Passos + Commits:
+
+  [ ] 10.1 FRONTEND (Vercel):
+           vercel.com → New Project → Root: apps/frontend
+           Env: NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
+           git commit: "chore(deploy): add vercel configuration if needed"
+
+  [ ] 10.2 BACKEND (Railway):
+           railway.app → New Project → root: apps/backend
+           Adicionar MySQL → copiar DATABASE_URL
+           Envs: DATABASE_URL, JWT_SECRET, PORT=3001,
+                 CORS_ORIGIN=https://seu-frontend.vercel.app, NODE_ENV=production
+           git commit: "chore(deploy): document Railway environment configuration"
+
+  [ ] 10.3 Atualizar CORS_ORIGIN (Railway) + NEXT_PUBLIC_API_URL (Vercel) com URLs reais
+  [ ] 10.4 Testar fluxo completo em produção: register → login → criar lead → kanban
+
+Entregas:
+  ✓ Vercel + Railway funcionando
+  ✓ CORS configurado entre domínios
+  ✓ Migrations rodando no deploy
+```
+
+---
+
+### ─── ETAPA 11 — DOCUMENTAÇÃO E ENTREGA ──────────────────────
+
+```
+Passos + Commits:
+
+  [ ] 11.1 Criar /docs/ai/README.md
+           git commit: "docs(ai): create /docs/ai/README.md"
+
+  [ ] 11.2 Criar /docs/ai/prompts.md (incluir este PROMPT-MESTRE como Prompt 1)
+           git commit: "docs(ai): create /docs/ai/prompts.md"
+
+  [ ] 11.3 Criar /docs/ai/decisions.md (nas suas palavras)
+           git commit: "docs(ai): create /docs/ai/decisions.md"
+
+  [ ] 11.4 Criar /docs/ai/review.md
+           git commit: "docs(ai): create /docs/ai/review.md"
+
+  [ ] 11.5 Escrever README.md principal completo (Seção 17)
+           git commit: "docs: write main README.md with setup and Docker instructions"
+
+  [ ] 11.6 Verificar .gitignore — nenhum .env commitado
+           git commit: "chore(gitignore): ensure all .env files are excluded"
+
+  [ ] 11.7 git log --oneline → revisar commits semânticos
+           (sem commit — validação)
+
+  [ ] 11.8 Enviar convite para "rodrigoamb" no GitHub
+
+Entregas:
+  ✓ README com instruções Docker (5 serviços) + local
+  ✓ /docs/ai/ com 4 arquivos
+  ✓ Convite enviado para rodrigoamb
+  ✓ 6 commits atômicos
+```
+
+---
+
+### 📊 MAPA DE COMMITS — RESUMO TOTAL
+
+| Etapa | Descrição | Commits |
+|-------|-----------|---------|
+| 1 | Banco MySQL + Prisma | 7 |
+| 2 | Backend: dependências + configs + utils + middlewares | 16 |
+| 3 | Backend: autenticação | 7 |
+| 4 | Backend: leads | 5 |
+| 5 | Backend: interações + dashboard | 7 |
+| 6 | Testes Jest + Supertest | 8 |
+| 7 | Docker: Traefik + MySQL + phpMyAdmin + Backend + Frontend | 7 |
+| 8 | Frontend: base + auth | 11 |
+| 9 | Frontend: features + Kanban + Dashboard | 10 |
+| 9b | E2E Playwright | 7 |
+| 10 | Deploy Vercel + Railway | 2 |
+| 11 | Documentação + entrega | 6 |
+| **TOTAL** | | **~93 commits atômicos** |
+
+> **Regra de ouro:** Um commit = uma instalação de pacote OU um arquivo de configuração OU um arquivo de feature.
+> Commits granulares demonstram raciocínio estruturado e são critério de avaliação.
+
+---
+
+_Prompt criado por Arthur Bruno Araujo | arthur-brain | Mini CRM de Leads — Teste Técnico Full-Stack Jr_
 
 ```
 Passos:
@@ -2238,7 +2912,7 @@ Passos:
   [ ] 10.2 BACKEND (Railway):
            - railway.app → New Project → Deploy from GitHub
            - Selecionar repo → Root: apps/backend
-           - Adicionar serviço PostgreSQL → copiar DATABASE_URL gerada
+           - Adicionar serviço MySQL (ou usar plugin MySQL do Railway) → copiar DATABASE_URL gerada
            - Adicionar envs: DATABASE_URL, JWT_SECRET, PORT=3001,
              CORS_ORIGIN=https://seu-frontend.vercel.app, NODE_ENV=production
            - Garantir start command: npx prisma migrate deploy && node dist/server.js
