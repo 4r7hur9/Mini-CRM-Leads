@@ -217,6 +217,8 @@ apps/frontend/
 │   └── lib/
 │       ├── utils.ts               # cn(), formatDate(), etc.
 │       └── constants.ts           # LEAD_STATUS, INTERACTION_TYPES
+├── styles/
+│   └── tokens.css                 # Design tokens: cores, espaçamentos, tipografia (CSS vars)
 ├── e2e/                           # Testes Playwright E2E
 │   ├── auth.spec.ts               # Fluxo de login, register, logout
 │   ├── leads.spec.ts              # CRUD de leads
@@ -1005,6 +1007,429 @@ if (error) return <ErrorMessage message={error.message} />;
 if (data.length === 0) return <EmptyState message="Nenhum lead encontrado" />;
 ```
 
+### Organização de componentes (react-best-practices)
+
+```
+Regra: organizar por feature — cada feature tem seus próprios componentes,
+hooks e services. Nunca colocar lógica de domínio em componente de UI.
+
+Componente  → apresentação pura (recebe props, exibe estado)
+Hook        → lógica de estado, efeitos, chamadas à API
+Service     → chamadas HTTP (Axios), sem estado
+Store       → estado global de sessão (Zustand)
+```
+
+### Regras de Hooks (react-best-practices)
+
+```tsx
+// ✅ CORRETO — cleanup em useEffect
+useEffect(() => {
+  const controller = new AbortController();
+  fetchLeads({ signal: controller.signal });
+  return () => controller.abort(); // cleanup ao desmontar
+}, [userId]);
+
+// ✅ CORRETO — useMemo apenas com benefício real
+const filteredLeads = useMemo(
+  () => leads.filter(l => l.status === activeStatus),
+  [leads, activeStatus], // recalcula só quando dependências mudam
+);
+
+// ❌ ERRADO — estado derivável não precisa ser state
+// const [count, setCount] = useState(leads.length); // leads.length já é derivável
+```
+
+### Acessibilidade mínima (react-best-practices)
+
+```tsx
+// Todo campo de formulário deve ter label associado
+<label htmlFor="email">E-mail</label>
+<input id="email" type="email" name="email" aria-required="true" />
+
+// Botões com ícone precisam de aria-label
+<button aria-label="Deletar lead" onClick={onDelete}>
+  <TrashIcon />
+</button>
+
+// Foco visível — nunca remover outline sem alternativa
+// Em tailwind.config.ts:
+// focusVisible: { outline: '2px solid', outlineColor: 'primary', outlineOffset: '2px' }
+
+// Navegação por teclado no Kanban — mover cards com Enter/Space
+<div
+  role="button"
+  tabIndex={0}
+  onKeyDown={e => e.key === 'Enter' && handleDragStart()}
+  aria-label={`Lead ${lead.name} — status ${lead.status}`}
+>
+```
+
+### Chaves estáveis em listas
+
+```tsx
+// ✅ CORRETO — usar ID único do dado (UUID do banco)
+{leads.map(lead => <LeadCard key={lead.id} lead={lead} />)}
+
+// ❌ ERRADO — index como key (causa bugs em listas reordenadas)
+{leads.map((lead, index) => <LeadCard key={index} lead={lead} />)}
+```
+
+---
+
+## [SEÇÃO 11b] DESIGN SYSTEM + RESPONSIVIDADE
+
+> Regras extraídas do skill **web-design-guidelines** e **react-best-practices** do arthur-brain.
+> Aplicar em **toda** implementação de componente, página e layout.
+
+---
+
+### Breakpoints obrigatórios (mobile-first)
+
+```ts
+// tailwind.config.ts — breakpoints do arthur-brain
+export default {
+  theme: {
+    screens: {
+      xs:  "320px",   // celulares pequenos (iPhone SE)
+      sm:  "375px",   // celulares padrão (iPhone 13 mini)
+      md:  "425px",   // celulares grandes (iPhone Pro Max)
+      lg:  "768px",   // tablets
+      xl:  "1024px",  // laptops
+      "2xl": "1280px" // desktops
+    },
+    extend: {
+      // Sempre definir aqui — nunca usar valores arbitrários inline
+    }
+  }
+}
+```
+
+> **Regra:** Todo layout começa no mobile (320px) e expande com media queries.
+> Nunca assumir que o usuário está em desktop.
+
+---
+
+### Design Tokens (styles/tokens.css)
+
+```css
+/* apps/frontend/src/styles/tokens.css */
+/* Importar em app/layout.tsx via globals.css */
+
+:root {
+  /* ─── CORES ──────────────────────────────── */
+  --color-primary:       #2563EB;   /* blue-600 — ações principais */
+  --color-primary-hover: #1D4ED8;   /* blue-700 — hover de botão primário */
+  --color-danger:        #DC2626;   /* red-600  — deletar, erros */
+  --color-success:       #16A34A;   /* green-600 — sucesso, fechado */
+  --color-warning:       #D97706;   /* amber-600 — atenção, proposta */
+  --color-neutral:       #6B7280;   /* gray-500  — texto secundário */
+
+  /* Status dos leads — usado no Badge e Kanban */
+  --status-novo:             #3B82F6; /* blue-500 */
+  --status-em-atendimento:   #F59E0B; /* amber-500 */
+  --status-proposta-enviada: #8B5CF6; /* violet-500 */
+  --status-fechado:          #10B981; /* emerald-500 */
+
+  /* ─── TIPOGRAFIA ─────────────────────────── */
+  --font-size-xs:   0.75rem;    /* 12px */
+  --font-size-sm:   0.875rem;   /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg:   1.125rem;   /* 18px */
+  --font-size-xl:   1.25rem;    /* 20px */
+  --font-size-2xl:  1.5rem;     /* 24px */
+  --font-size-3xl:  1.875rem;   /* 30px */
+
+  /* ─── ESPAÇAMENTO ────────────────────────── */
+  --spacing-1:  0.25rem;   /* 4px  */
+  --spacing-2:  0.5rem;    /* 8px  */
+  --spacing-3:  0.75rem;   /* 12px */
+  --spacing-4:  1rem;      /* 16px */
+  --spacing-6:  1.5rem;    /* 24px */
+  --spacing-8:  2rem;      /* 32px */
+  --spacing-12: 3rem;      /* 48px */
+
+  /* ─── RAIO DE BORDA ──────────────────────── */
+  --radius-sm: 0.25rem;   /* 4px  — inputs, badges */
+  --radius-md: 0.5rem;    /* 8px  — cards, botões */
+  --radius-lg: 1rem;      /* 16px — modais, drawers */
+  --radius-full: 9999px;  /* pílula — badges de status */
+
+  /* ─── SOMBRAS ────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.1);
+}
+```
+
+---
+
+### Regras Anti-Break (obrigatórias em todo componente)
+
+```tsx
+/*
+ * REGRA 1 — Toda imagem precisa de max-width e object-fit
+ * Sem isso, imagens quebram containers em mobile.
+ */
+<img
+  src={avatar}
+  alt={lead.name}
+  className="max-w-full h-auto object-cover rounded-full"
+/>
+
+/*
+ * REGRA 2 — Sem scroll horizontal acidental
+ * Nunca usar width fixo maior que 100vw sem overflow: hidden no container pai.
+ */
+<main className="w-full max-w-screen overflow-x-hidden">
+
+/*
+ * REGRA 3 — Texto longo com quebra segura
+ * Nomes de empresa, e-mail e descrições podem ser muito longos.
+ */
+<p className="truncate max-w-full">
+  {lead.company}
+</p>
+// Para textos com múltiplas linhas:
+<p className="break-words overflow-wrap-anywhere">
+  {interaction.description}
+</p>
+
+/*
+ * REGRA 4 — Menus e modais sem clipping
+ * Sidebar mobile como drawer; Modal sempre com backdrop e z-index correto.
+ */
+<aside className="
+  fixed inset-y-0 left-0 z-40 w-64
+  transform transition-transform duration-300
+  lg:static lg:translate-x-0
+  -translate-x-full data-[open=true]:translate-x-0
+">
+
+/*
+ * REGRA 5 — Containers com largura fluida
+ * Nunca usar px fixo em containers de conteúdo.
+ */
+<div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+```
+
+---
+
+### Hierarquia Tipográfica (padrão para todas as páginas)
+
+```tsx
+// Títulos de página
+<h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard</h1>
+
+// Títulos de seção
+<h2 className="text-lg font-semibold text-gray-800">Leads Recentes</h2>
+
+// Labels e subtítulos
+<h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+  Status
+</h3>
+
+// Texto de conteúdo
+<p className="text-sm text-gray-700 leading-relaxed">{lead.notes}</p>
+
+// Texto auxiliar (data, meta)
+<span className="text-xs text-gray-400">{formatDate(lead.createdAt)}</span>
+```
+
+---
+
+### Estados Visuais de Botão (obrigatórios)
+
+```tsx
+// Button.tsx — todos os estados devem ser visíveis e coerentes
+<button
+  className="
+    inline-flex items-center justify-center gap-2
+    px-4 py-2 rounded-md text-sm font-medium
+    transition-colors duration-150
+    /* Estado normal */
+    bg-blue-600 text-white
+    /* Hover */
+    hover:bg-blue-700
+    /* Active (clique) */
+    active:bg-blue-800 active:scale-[0.98]
+    /* Focus visível — acessibilidade */
+    focus-visible:outline-none focus-visible:ring-2
+    focus-visible:ring-blue-500 focus-visible:ring-offset-2
+    /* Disabled */
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+  "
+  disabled={isLoading}
+>
+  {isLoading ? <Spinner size="sm" /> : children}
+</button>
+```
+
+---
+
+### Sidebar — Responsividade Mobile/Desktop
+
+```tsx
+/*
+ * Mobile  (< 1024px): Sidebar como drawer lateral com overlay escuro
+ * Desktop (>= 1024px): Sidebar fixa à esquerda, layout em duas colunas
+ *
+ * Estrutura:
+ * - [estado] sidebarOpen (useState) controlado pelo Header
+ * - [mobile] overlay fecha ao clicar fora
+ * - [desktop] sempre visível via CSS (lg:flex)
+ */
+
+// Layout principal
+<div className="flex h-screen overflow-hidden bg-gray-50">
+  {/* Overlay mobile */}
+  {sidebarOpen && (
+    <div
+      className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+      onClick={() => setSidebarOpen(false)}
+    />
+  )}
+
+  {/* Sidebar */}
+  <aside className={`
+    fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg
+    transform transition-transform duration-300 ease-in-out
+    lg:static lg:translate-x-0 lg:shadow-none
+    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+  `}>
+    <SidebarContent />
+  </aside>
+
+  {/* Conteúdo principal */}
+  <main className="flex-1 overflow-y-auto">
+    <Header onMenuClick={() => setSidebarOpen(true)} />
+    {children}
+  </main>
+</div>
+```
+
+---
+
+### Kanban — Layout Responsivo
+
+```tsx
+/*
+ * Mobile  (< 768px): colunas empilhadas verticalmente + select para mudar status
+ * Tablet  (768-1023px): scroll horizontal com colunas lado a lado
+ * Desktop (>= 1024px): 4 colunas em grid fixo
+ *
+ * REGRA: drag & drop só em desktop/tablet; mobile usa <select> para mudar status
+ * Isso garante UX funcional em touch sem depender de drag events.
+ */
+<div className="
+  flex flex-col gap-4
+  md:flex-row md:overflow-x-auto md:pb-4
+  lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-x-visible
+">
+  {columns.map(column => (
+    <KanbanColumn key={column.status} column={column} />
+  ))}
+</div>
+
+// KanbanColumn — largura mínima para não colapsar em scroll horizontal
+<div className="
+  w-full flex-shrink-0
+  md:w-72 md:min-w-[18rem]
+  lg:w-auto
+  bg-gray-100 rounded-lg p-3
+">
+```
+
+---
+
+### Cards de Lead — Responsividade
+
+```tsx
+/*
+ * Lista de Leads: grid responsivo
+ * Mobile:  1 coluna
+ * Tablet:  2 colunas
+ * Desktop: 3 colunas (ou tabela, conforme contexto)
+ */
+<ul className="
+  grid grid-cols-1 gap-4
+  sm:grid-cols-2
+  xl:grid-cols-3
+">
+  {leads.map(lead => (
+    <LeadCard key={lead.id} lead={lead} />
+  ))}
+</ul>
+```
+
+---
+
+### Badge de Status
+
+```tsx
+// Badge.tsx — cor dinâmica por status
+const STATUS_COLORS: Record<LeadStatus, string> = {
+  NOVO:              "bg-blue-100 text-blue-700 ring-blue-200",
+  EM_ATENDIMENTO:    "bg-amber-100 text-amber-700 ring-amber-200",
+  PROPOSTA_ENVIADA:  "bg-violet-100 text-violet-700 ring-violet-200",
+  FECHADO:           "bg-emerald-100 text-emerald-700 ring-emerald-200",
+};
+
+export function Badge({ status }: { status: LeadStatus }) {
+  return (
+    <span className={`
+      inline-flex items-center px-2.5 py-0.5
+      rounded-full text-xs font-medium ring-1 ring-inset
+      ${STATUS_COLORS[status]}
+    `}>
+      {STATUS_LABELS[status]}
+    </span>
+  );
+}
+```
+
+---
+
+### Checklist de Validação Visual (por breakpoint)
+
+Antes de considerar qualquer tela concluída, validar em cada breakpoint:
+
+```
+□ 320px  — Sem overflow horizontal; sidebar escondida; formulário cabe na tela
+□ 375px  — Texto não cortado; botões não empilham de forma confusa
+□ 425px  — Cards e listas sem quebra inesperada
+□ 768px  — Layout tablet: sidebar abre como drawer; kanban com scroll horizontal
+□ 1024px — Layout desktop: sidebar fixa; kanban em 4 colunas; grid de leads 3 cols
+□ 1280px — Conteúdo centralizado com max-w-7xl; espaçamento generoso
+□ Geral  — Sem texto sem contraste adequado (WCAG AA: 4.5:1)
+□ Geral  — Todos os campos de form com label visível ou aria-label
+□ Geral  — Tab navigation funcional (outline visível em foco)
+□ Geral  — Imagens com alt text descritivo ou alt="" se decorativas
+□ Geral  — Estados hover/active/disabled coerentes em todos os botões
+```
+
+---
+
+### Prompt de UI Reform (do arthur-brain) — usar para revisão visual
+
+```
+Você é um especialista em frontend design e engenharia de interface.
+
+## Objetivo
+Executar reforma visual moderna e fluida sem quebrar comportamento funcional.
+
+## Fluxo
+A) Diagnóstico visual — listar o que quebra em cada breakpoint
+B) Mudanças por prioridade — do mais crítico (overflow) ao cosmético
+C) Código final — Tailwind, sem inline style, mobile-first
+D) Validação por breakpoint — confirmar 320/375/425/768/1024/1280
+
+## Regras
+- Preservar contratos e props existentes
+- Aplicar tokens de cor e espaçamento (usar classes Tailwind, não valores arbitrários)
+- Garantir acessibilidade visual mínima (contraste, foco, labels)
+- Sidebar mobile como drawer; kanban mobile como colunas empilhadas com select
+```
+
 ---
 
 ## [SEÇÃO 12] DOCKER — CONFIGURAÇÃO COMPLETA
@@ -1019,7 +1444,6 @@ if (data.length === 0) return <EmptyState message="Nenhum lead encontrado" />;
 version: "3.8"
 
 services:
-
   # ─── TRAEFIK — REVERSE PROXY ────────────────────────────────────
   # Roteia http://localhost → frontend e http://localhost/api → backend
   # Dashboard em http://localhost:8080 (apenas desenvolvimento)
@@ -1028,15 +1452,15 @@ services:
     container_name: mini_crm_traefik
     restart: unless-stopped
     command:
-      - "--api.insecure=true"                        # dashboard sem auth — somente dev
-      - "--providers.docker=true"                    # descobre serviços pelos labels
-      - "--providers.docker.exposedbydefault=false"  # expõe só quem tem label enable=true
-      - "--entrypoints.web.address=:80"              # único entrypoint HTTP na porta 80
+      - "--api.insecure=true" # dashboard sem auth — somente dev
+      - "--providers.docker=true" # descobre serviços pelos labels
+      - "--providers.docker.exposedbydefault=false" # expõe só quem tem label enable=true
+      - "--entrypoints.web.address=:80" # único entrypoint HTTP na porta 80
     ports:
-      - "80:80"      # tráfego HTTP principal
-      - "8080:8080"  # Traefik dashboard
+      - "80:80" # tráfego HTTP principal
+      - "8080:8080" # Traefik dashboard
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro  # lê eventos Docker (read-only)
+      - /var/run/docker.sock:/var/run/docker.sock:ro # lê eventos Docker (read-only)
     networks:
       - mini_crm_net
 
@@ -1051,7 +1475,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"  # exposto apenas para Prisma Studio e ferramentas locais
+      - "3306:3306" # exposto apenas para Prisma Studio e ferramentas locais
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -1073,11 +1497,11 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      PMA_HOST: mysql          # nome do serviço MySQL na rede Docker
+      PMA_HOST: mysql # nome do serviço MySQL na rede Docker
       PMA_PORT: 3306
-      PMA_ARBITRARY: 0         # desabilita login em servidor arbitrário
+      PMA_ARBITRARY: 0 # desabilita login em servidor arbitrário
     ports:
-      - "8081:80"  # http://localhost:8081
+      - "8081:80" # http://localhost:8081
     networks:
       - mini_crm_net
 
@@ -1143,12 +1567,12 @@ volumes:
 
 > **URLs disponíveis após `docker-compose up -d`:**
 >
-> | URL | Serviço |
-> |-----|---------|
-> | http://localhost | Frontend (Next.js via Traefik) |
+> | URL                     | Serviço                           |
+> | ----------------------- | --------------------------------- |
+> | http://localhost        | Frontend (Next.js via Traefik)    |
 > | http://localhost/api/v1 | Backend API (Express via Traefik) |
-> | http://localhost:8080 | Traefik Dashboard |
-> | http://localhost:8081 | phpMyAdmin (MySQL) |
+> | http://localhost:8080   | Traefik Dashboard                 |
+> | http://localhost:8081   | phpMyAdmin (MySQL)                |
 >
 > **Nota sobre `NEXT_PUBLIC_API_URL`:** Variável baked no bundle em build time.
 > Com Traefik: usar `http://localhost/api/v1` (mesmo host, sem porta).
@@ -1335,6 +1759,7 @@ docker-compose down -v
 ```
 
 > **Serviços e portas disponíveis:**
+>
 > - `http://localhost` → Frontend (via Traefik porta 80)
 > - `http://localhost/api/v1` → Backend API (via Traefik porta 80)
 > - `http://localhost:8080` → Traefik Dashboard
@@ -1407,11 +1832,11 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 
 > **Resumo das diferenças Docker vs local:**
 >
-> | Contexto | DATABASE_URL | CORS_ORIGIN | NEXT_PUBLIC_API_URL |
-> |----------|-------------|-------------|---------------------|
-> | Local (npm run dev) | `mysql://...@localhost:3306/...` | `http://localhost:3000` | `http://localhost:3001/api/v1` |
-> | Docker + Traefik | `mysql://...@mysql:3306/...` | `http://localhost` | `http://localhost/api/v1` |
-> | Produção (Railway/Vercel) | URL gerada pelo Railway | `https://frontend.vercel.app` | `https://backend.railway.app/api/v1` |
+> | Contexto                  | DATABASE_URL                     | CORS_ORIGIN                   | NEXT_PUBLIC_API_URL                  |
+> | ------------------------- | -------------------------------- | ----------------------------- | ------------------------------------ |
+> | Local (npm run dev)       | `mysql://...@localhost:3306/...` | `http://localhost:3000`       | `http://localhost:3001/api/v1`       |
+> | Docker + Traefik          | `mysql://...@mysql:3306/...`     | `http://localhost`            | `http://localhost/api/v1`            |
+> | Produção (Railway/Vercel) | URL gerada pelo Railway          | `https://frontend.vercel.app` | `https://backend.railway.app/api/v1` |
 
 ---
 
@@ -1520,9 +1945,10 @@ describe('Leads API', () => {
 ```
 
 > **ATENÇÃO — scripts críticos para o Docker:**
+>
 > - `"build": "tsc"` — o Dockerfile faz `RUN npm run build`. Sem este script o container falha.
 > - `"start": "node dist/server.js"` — CMD do Docker usa este script.
-> - `"prisma.seed"` — sem esta config, `npx prisma db seed` falha com *"no seed script found"*.
+> - `"prisma.seed"` — sem esta config, `npx prisma db seed` falha com _"no seed script found"_.
 
 ### tsconfig.json do backend
 
@@ -1655,7 +2081,9 @@ test.describe("Autenticação", () => {
     expect(page.url()).toContain("/dashboard");
   });
 
-  test("login com credenciais erradas → exibe mensagem de erro", async ({ page }) => {
+  test("login com credenciais erradas → exibe mensagem de erro", async ({
+    page,
+  }) => {
     await page.goto("/login");
     await page.fill('[name="email"]', "admin@teste.com");
     await page.fill('[name="password"]', "senhaerrada");
@@ -1717,8 +2145,12 @@ test.describe("Kanban", () => {
     const page = authenticatedPage;
     await page.goto("/kanban");
     await expect(page.locator('[data-testid="column-NOVO"]')).toBeVisible();
-    await expect(page.locator('[data-testid="column-CONTATADO"]')).toBeVisible();
-    await expect(page.locator('[data-testid="column-QUALIFICADO"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="column-CONTATADO"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="column-QUALIFICADO"]'),
+    ).toBeVisible();
     await expect(page.locator('[data-testid="column-PERDIDO"]')).toBeVisible();
   });
 
@@ -1732,7 +2164,9 @@ test.describe("Kanban", () => {
       .locator('[data-testid="lead-name"]')
       .textContent();
     /* Usar select como alternativa ao drag — mais estável em E2E */
-    await card.locator('[data-testid="status-select"]').selectOption("CONTATADO");
+    await card
+      .locator('[data-testid="status-select"]')
+      .selectOption("CONTATADO");
     await expect(
       page
         .locator('[data-testid="column-CONTATADO"]')
@@ -1758,9 +2192,7 @@ test.describe("Dashboard", () => {
     await expect(
       page.locator('[data-testid="stat-qualificados"]'),
     ).toBeVisible();
-    await expect(
-      page.locator('[data-testid="stat-conversao"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="stat-conversao"]')).toBeVisible();
   });
 
   test("total de leads bate com a lista de leads", async ({
@@ -1795,6 +2227,7 @@ Adicionar os seguintes scripts:
 ```
 
 > **Pré-requisitos para rodar E2E:**
+>
 > - Backend rodando em `:3001`
 > - Banco populado com o seed (`admin@teste.com` / `Admin@123`)
 > - O `playwright.config.ts` com `webServer` sobe o Next.js automaticamente em `:3000`
@@ -2338,50 +2771,94 @@ Entregas:
 
 ### ─── ETAPA 9 — FRONTEND — FEATURES ──────────────────────────
 
-**Objetivo:** Todas as telas funcionais conectadas à API.
+**Objetivo:** Todas as telas funcionais conectadas à API, responsivas e acessíveis.
 
 ```
 Passos + Commits:
 
+  [ ] 9.0  Criar styles/tokens.css + configurar tailwind.config.ts (Seção 11b)
+           — breakpoints 320/375/425/768/1024/1280
+           — paleta de cores por status (NOVO, EM_ATENDIMENTO, etc.)
+           git commit: "chore(design): implement design tokens and tailwind breakpoints"
+
   [ ] 9.1  Implementar components/ui/ (Button, Input, Modal, Badge, Spinner, EmptyState)
-           git commit: "feat(ui): implement components/ui atomic components"
+           — Button: todos os estados hover/active/disabled/focus-visible (Seção 11b)
+           — Badge: cores dinâmicas por status (STATUS_COLORS map)
+           — Input: label associada com htmlFor + aria-required
+           git commit: "feat(ui): implement components/ui atomic components with states"
 
   [ ] 9.2  Implementar components/layout/ (Sidebar, Header, PrivateLayout)
-           git commit: "feat(layout): implement Sidebar Header PrivateLayout"
+           — Sidebar: drawer mobile (<1024px) + fixa desktop (>=1024px) (Seção 11b)
+           — Header: botão hambúrguer mobile com aria-label
+           — Overlay escuro fecha o drawer ao clicar fora
+           git commit: "feat(layout): implement responsive Sidebar Header PrivateLayout"
 
   [ ] 9.3  Implementar hooks/useLeads.ts
-           git commit: "feat(hooks): implement hooks/useLeads.ts"
+           — useEffect com AbortController cleanup
+           — retornar { data, isLoading, error }
+           git commit: "feat(hooks): implement hooks/useLeads.ts with cleanup"
 
   [ ] 9.4  Implementar hooks/useInteractions.ts
-           git commit: "feat(hooks): implement hooks/useInteractions.ts"
+           git commit: "feat(hooks): implement hooks/useInteractions.ts with cleanup"
 
   [ ] 9.5  Implementar app/(private)/leads/page.tsx (lista + busca + filtro)
-           git commit: "feat(leads): implement leads list page with search and filter"
+           — Grid: 1 col mobile / 2 cols tablet / 3 cols desktop (Seção 11b)
+           — Chaves estáveis: key={lead.id} (nunca index)
+           — Tratar loading / error / empty obrigatoriamente
+           git commit: "feat(leads): implement responsive leads list page"
 
   [ ] 9.6  Implementar components/leads/LeadForm.tsx (criar + editar)
-           git commit: "feat(leads): implement LeadForm.tsx create and edit"
+           — Todo campo com label htmlFor + aria-required
+           — Validação Zod client-side com mensagem acessível
+           git commit: "feat(leads): implement LeadForm.tsx with accessible validation"
 
   [ ] 9.7  Implementar app/(private)/leads/[id]/page.tsx (detalhes + interações)
+           — Texto longo com truncate / break-words (Seção 11b)
            git commit: "feat(leads): implement lead detail page with interactions"
 
   [ ] 9.8  Instalar @dnd-kit:
            npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
            git commit: "chore(deps): install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities"
 
-  [ ] 9.9  Implementar app/(private)/kanban/page.tsx (4 colunas + drag and drop)
-           git commit: "feat(kanban): implement kanban board with dnd-kit drag and drop"
+  [ ] 9.9  Implementar app/(private)/kanban/page.tsx
+           — Mobile (<768px): colunas empilhadas + <select> para mudar status
+           — Tablet (768-1023px): scroll horizontal com colunas de 18rem
+           — Desktop (>=1024px): grid-cols-4 fixo + drag and drop
+           — aria-label nos cards draggable; suporte Enter/Space para teclado
+           git commit: "feat(kanban): implement responsive kanban with dnd + mobile select"
 
   [ ] 9.10 Implementar app/(private)/dashboard/page.tsx (4 cards + últimos leads)
-           git commit: "feat(dashboard): implement dashboard with stats cards"
+           — StatCards em grid: 1 col mobile / 2 cols tablet / 4 cols desktop
+           git commit: "feat(dashboard): implement responsive dashboard stats cards"
 
-  [ ] 9.11 Testar todos os fluxos CRUD + drag and drop
+  [ ] 9.11 Auditoria de responsividade (Seção 11b — Checklist Visual)
+           — Validar em 320 / 375 / 425 / 768 / 1024 / 1280
+           — Sem overflow horizontal em nenhum breakpoint
+           — Sidebar drawer mobile funcionando
+           — Kanban mobile com select funcionando
+           git commit: "fix(responsive): apply responsive audit fixes across all pages"
+
+  [ ] 9.12 Testar todos os fluxos CRUD + drag and drop
            (sem commit — validação)
 
 Entregas:
+  ✓ Design tokens aplicados (tokens.css + tailwind.config.ts)
   ✓ Loading / error / empty em todos os componentes
-  ✓ Kanban com drag and drop + optimistic update
-  ✓ Responsivo mobile-first
-  ✓ 10 commits atômicos
+  ✓ Kanban: drag and drop desktop + select mobile
+  ✓ Sidebar: drawer mobile + fixa desktop
+  ✓ Texto longo com truncate/break-words
+  ✓ Acessibilidade: labels, aria-label, foco visível, key estável
+  ✓ Auditoria por breakpoint concluída
+  ✓ 12 commits atômicos
+
+Prompt para a IA (Seção 11b — UI Reform):
+  "Você é um especialista em frontend design e engenharia de interface.
+  Implemente o frontend conforme Seção 11, 11b e 4.2.
+  A) Diagnóstico: listar o que pode quebrar em mobile (320px).
+  B) Mudanças: design tokens → layout responsivo → acessibilidade.
+  C) Código: Tailwind mobile-first, breakpoints 320/375/425/768/1024/1280.
+  D) Validação: confirmar comportamento em cada breakpoint.
+  Sidebar: drawer mobile + fixa desktop. Kanban: select mobile + drag desktop."
 ```
 
 ---
@@ -2496,21 +2973,21 @@ Entregas:
 
 ### 📊 MAPA DE COMMITS — RESUMO TOTAL
 
-| Etapa | Descrição | Commits |
-|-------|-----------|---------|
-| 1 | Banco MySQL + Prisma | 7 |
-| 2 | Backend: dependências + configs + utils + middlewares | 16 |
-| 3 | Backend: autenticação | 7 |
-| 4 | Backend: leads | 5 |
-| 5 | Backend: interações + dashboard | 7 |
-| 6 | Testes Jest + Supertest | 8 |
-| 7 | Docker: Traefik + MySQL + phpMyAdmin + Backend + Frontend | 7 |
-| 8 | Frontend: base + auth | 11 |
-| 9 | Frontend: features + Kanban + Dashboard | 10 |
-| 9b | E2E Playwright | 7 |
-| 10 | Deploy Vercel + Railway | 2 |
-| 11 | Documentação + entrega | 6 |
-| **TOTAL** | | **~93 commits atômicos** |
+| Etapa     | Descrição                                                 | Commits                  |
+| --------- | --------------------------------------------------------- | ------------------------ |
+| 1         | Banco MySQL + Prisma                                      | 7                        |
+| 2         | Backend: dependências + configs + utils + middlewares     | 16                       |
+| 3         | Backend: autenticação                                     | 7                        |
+| 4         | Backend: leads                                            | 5                        |
+| 5         | Backend: interações + dashboard                           | 7                        |
+| 6         | Testes Jest + Supertest                                   | 8                        |
+| 7         | Docker: Traefik + MySQL + phpMyAdmin + Backend + Frontend | 7                        |
+| 8         | Frontend: base + auth                                     | 11                       |
+| 9         | Frontend: features + Design System + Responsividade + Kanban + Dashboard | 12                       |
+| 9b        | E2E Playwright                                            | 7                        |
+| 10        | Deploy Vercel + Railway                                   | 2                        |
+| 11        | Documentação + entrega                                    | 6                        |
+| **TOTAL** |                                                           | **~95 commits atômicos** |
 
 > **Regra de ouro:** Um commit = uma instalação de pacote OU um arquivo de configuração OU um arquivo de feature.
 > Commits granulares demonstram raciocínio estruturado e são critério de avaliação.
