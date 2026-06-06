@@ -680,23 +680,23 @@ Toda resposta da API deve seguir este contrato:
 ### cookieOptions.ts
 
 ```ts
-import type { CookieOptions } from 'express'
+import type { CookieOptions } from "express";
 
 /**
  * Opções do cookie JWT httpOnly.
  * Tipagem explícita CookieOptions garante valores corretos em compile time.
  */
 export const cookieOptions: CookieOptions = {
-  httpOnly: true,            // JavaScript não acessa o cookie (OWASP A02)
-  secure: process.env.NODE_ENV === 'production', // HTTPS em produção
-  sameSite: 'strict' as const, // Proteção contra CSRF
+  httpOnly: true, // JavaScript não acessa o cookie (OWASP A02)
+  secure: process.env.NODE_ENV === "production", // HTTPS em produção
+  sameSite: "strict" as const, // Proteção contra CSRF
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias em ms
-}
+};
 
 export const clearCookieOptions: CookieOptions = {
   ...cookieOptions,
   maxAge: 0, // Usada no logout para limpar o cookie
-}
+};
 ```
 
 ### env.ts — Validação de variáveis de ambiente
@@ -715,7 +715,7 @@ const envSchema = z.object({
   // Usar startsWith para aceitar URLs PostgreSQL sem falso-positivo
   DATABASE_URL: z.string().min(10).startsWith("postgresql://"),
   JWT_SECRET: z.string().min(32), // mínimo 32 chars para segurança
-  CORS_ORIGIN: z.string().url(),  // CORS_ORIGIN é http(s):// — .url() correto aqui
+  CORS_ORIGIN: z.string().url(), // CORS_ORIGIN é http(s):// — .url() correto aqui
 });
 ```
 
@@ -908,6 +908,15 @@ export class AppError extends Error {
 ### asyncHandler.ts — Wrapper para eliminar try-catch repetitivo
 
 ```ts
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+
+/** Tipo local para handlers assíncronos — evita dependência de tipo externo não declarado */
+type AsyncRequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void | Response>;
+
 /**
  * Wrapper para controller functions assíncronas.
  * Captura qualquer erro rejeitado e encaminha para o errorMiddleware,
@@ -916,15 +925,6 @@ export class AppError extends Error {
  * @param {Function} fn - Função assíncrona do controller.
  * @returns {RequestHandler} Handler do Express com captura de erros.
  */
-import type { Request, Response, NextFunction, RequestHandler } from 'express'
-
-/** Tipo local para handlers assíncronos — evita dependência de tipo externo não declarado */
-type AsyncRequestHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => Promise<void | Response>
-
 export const asyncHandler =
   (fn: AsyncRequestHandler): RequestHandler =>
   (req, res, next) =>
@@ -1066,7 +1066,8 @@ services:
       context: ./apps/frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1 # URL pública (browser)
+        # Lê do .env da raiz — sobrescreva para produção (ex: URL do Vercel)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
     container_name: mini_crm_frontend
     restart: unless-stopped
     depends_on:
@@ -1356,6 +1357,7 @@ npm install -D jest ts-jest @types/jest supertest @types/supertest
 
 > **Atenção:** Criar também `apps/backend/.env.test` (ou configurar `NODE_ENV=test` + `DATABASE_URL_TEST`)
 > para apontar para um banco separado nos testes de integração:
+>
 > ```env
 > # apps/backend/.env.test
 > NODE_ENV=test
@@ -1364,6 +1366,7 @@ npm install -D jest ts-jest @types/jest supertest @types/supertest
 > CORS_ORIGIN=http://localhost:3000
 > PORT=3002
 > ```
+>
 > O `jest.config.ts` deve carregar esse arquivo com `globalSetup` ou a lib `dotenv` no `tests/setup.ts`.
 
 ### Estrutura dos testes
@@ -1409,13 +1412,300 @@ describe('Leads API', () => {
 ```json
 {
   "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:integration": "jest --testPathPattern=integration"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
 ```
+
+> **ATENÇÃO — scripts críticos para o Docker:**
+> - `"build": "tsc"` — o Dockerfile faz `RUN npm run build`. Sem este script o container falha.
+> - `"start": "node dist/server.js"` — CMD do Docker usa este script.
+> - `"prisma.seed"` — sem esta config, `npx prisma db seed` falha com *"no seed script found"*.
+
+### tsconfig.json do backend
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*", "prisma/seed.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+```
+
+> **`outDir: "./dist"` é crítico** — o Dockerfile gera o build em `dist/` e executa `node dist/server.js`.
+> Sem isso, o build do container falha silenciosamente ou o `node` não encontra `server.js`.
+
+---
+
+## [SEÇÃO 14b] TESTES E2E — PLAYWRIGHT
+
+### playwright.config.ts (raiz do monorepo)
+
+```ts
+import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "./e2e",
+  /* Paralelismo total */
+  fullyParallel: true,
+  /* Falha imediata no CI se test.only foi esquecido */
+  forbidOnly: !!process.env.CI,
+  /* Retries em CI para flakiness */
+  retries: process.env.CI ? 2 : 0,
+  /* Workers em CI */
+  workers: process.env.CI ? 1 : undefined,
+  reporter: [["html", { open: "never" }], ["list"]],
+  use: {
+    baseURL: "http://localhost:3000",
+    /* Trace em primeira retry para diagnóstico */
+    trace: "on-first-retry",
+    /* Screenshot automático em falha */
+    screenshot: "only-on-failure",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "mobile-iphone13",
+      use: { ...devices["iPhone 13"] },
+    },
+  ],
+  /* Sobe o Next.js automaticamente antes de rodar os testes */
+  webServer: {
+    command: "npm run dev",
+    cwd: "./apps/frontend",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
+});
+```
+
+### e2e/fixtures/auth.fixture.ts
+
+```ts
+import { test as base, type Page } from "@playwright/test";
+
+type AuthFixtures = {
+  authenticatedPage: Page;
+};
+
+/**
+ * Fixture reutilizável que faz login antes de cada teste autenticado.
+ * Usar `import { test, expect } from "./fixtures/auth.fixture"` nos specs.
+ */
+export const test = base.extend<AuthFixtures>({
+  authenticatedPage: async ({ page }, use) => {
+    await page.goto("/login");
+    await page.fill('[name="email"]', "admin@teste.com");
+    await page.fill('[name="password"]', "Admin@123");
+    await page.click('[type="submit"]');
+    await page.waitForURL("**/dashboard");
+    await use(page);
+  },
+});
+
+export { expect } from "@playwright/test";
+```
+
+### e2e/auth.spec.ts
+
+```ts
+import { test, expect } from "@playwright/test";
+
+test.describe("Autenticação", () => {
+  test("redireciona /dashboard → /login sem autenticação", async ({ page }) => {
+    await page.goto("/dashboard");
+    await page.waitForURL("**/login");
+    expect(page.url()).toContain("/login");
+  });
+
+  test("register → redireciona para /dashboard", async ({ page }) => {
+    await page.goto("/register");
+    await page.fill('[name="name"]', "Teste E2E");
+    await page.fill('[name="email"]', `e2e_${Date.now()}@teste.com`);
+    await page.fill('[name="password"]', "Admin@123");
+    await page.click('[type="submit"]');
+    await page.waitForURL("**/dashboard");
+    expect(page.url()).toContain("/dashboard");
+  });
+
+  test("login com credenciais erradas → exibe mensagem de erro", async ({ page }) => {
+    await page.goto("/login");
+    await page.fill('[name="email"]', "admin@teste.com");
+    await page.fill('[name="password"]', "senhaerrada");
+    await page.click('[type="submit"]');
+    await expect(page.locator('[role="alert"], .error-message')).toBeVisible();
+  });
+
+  test("logout → redireciona para /login", async ({ page }) => {
+    await page.goto("/login");
+    await page.fill('[name="email"]', "admin@teste.com");
+    await page.fill('[name="password"]', "Admin@123");
+    await page.click('[type="submit"]');
+    await page.waitForURL("**/dashboard");
+    await page.click('[data-testid="logout-button"]');
+    await page.waitForURL("**/login");
+    expect(page.url()).toContain("/login");
+  });
+});
+```
+
+### e2e/leads.spec.ts
+
+```ts
+import { test, expect } from "./fixtures/auth.fixture";
+
+test.describe("Leads — CRUD", () => {
+  test("criar lead → aparece na lista", async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto("/leads");
+    await page.click('[data-testid="new-lead-button"]');
+    await page.fill('[name="name"]', "Lead E2E");
+    await page.fill('[name="email"]', `lead_${Date.now()}@teste.com`);
+    await page.fill('[name="company"]', "Empresa Teste");
+    await page.click('[type="submit"]');
+    await expect(page.locator("text=Lead E2E")).toBeVisible();
+  });
+
+  test("deletar lead → some da lista", async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto("/leads");
+    const leadCard = page.locator('[data-testid="lead-card"]').first();
+    const leadName = await leadCard
+      .locator('[data-testid="lead-name"]')
+      .textContent();
+    await leadCard.locator('[data-testid="delete-lead-button"]').click();
+    await page.locator('[data-testid="confirm-delete"]').click();
+    await expect(page.locator(`text=${leadName}`)).not.toBeVisible();
+  });
+});
+```
+
+### e2e/kanban.spec.ts
+
+```ts
+import { test, expect } from "./fixtures/auth.fixture";
+
+test.describe("Kanban", () => {
+  test("exibe as 4 colunas de status", async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto("/kanban");
+    await expect(page.locator('[data-testid="column-NOVO"]')).toBeVisible();
+    await expect(page.locator('[data-testid="column-CONTATADO"]')).toBeVisible();
+    await expect(page.locator('[data-testid="column-QUALIFICADO"]')).toBeVisible();
+    await expect(page.locator('[data-testid="column-PERDIDO"]')).toBeVisible();
+  });
+
+  test("mover card via select de status → aparece na coluna correta", async ({
+    authenticatedPage,
+  }) => {
+    const page = authenticatedPage;
+    await page.goto("/kanban");
+    const card = page.locator('[data-testid="kanban-card"]').first();
+    const cardName = await card
+      .locator('[data-testid="lead-name"]')
+      .textContent();
+    /* Usar select como alternativa ao drag — mais estável em E2E */
+    await card.locator('[data-testid="status-select"]').selectOption("CONTATADO");
+    await expect(
+      page
+        .locator('[data-testid="column-CONTATADO"]')
+        .locator(`text=${cardName}`),
+    ).toBeVisible();
+  });
+});
+```
+
+### e2e/dashboard.spec.ts
+
+```ts
+import { test, expect } from "./fixtures/auth.fixture";
+
+test.describe("Dashboard", () => {
+  test("exibe os 4 cards de métricas", async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto("/dashboard");
+    await expect(
+      page.locator('[data-testid="stat-total-leads"]'),
+    ).toBeVisible();
+    await expect(page.locator('[data-testid="stat-novos"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="stat-qualificados"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="stat-conversao"]'),
+    ).toBeVisible();
+  });
+
+  test("total de leads bate com a lista de leads", async ({
+    authenticatedPage,
+  }) => {
+    const page = authenticatedPage;
+    await page.goto("/dashboard");
+    const totalText = await page
+      .locator('[data-testid="stat-total-leads"]')
+      .textContent();
+    const total = parseInt(totalText?.match(/\d+/)?.[0] ?? "0", 10);
+    await page.goto("/leads");
+    const cards = page.locator('[data-testid="lead-card"]');
+    await expect(cards).toHaveCount(total);
+  });
+});
+```
+
+### Scripts no package.json do frontend (`apps/frontend/package.json`)
+
+Adicionar os seguintes scripts:
+
+```json
+{
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:debug": "playwright test --debug"
+  }
+}
+```
+
+> **Pré-requisitos para rodar E2E:**
+> - Backend rodando em `:3001`
+> - Banco populado com o seed (`admin@teste.com` / `Admin@123`)
+> - O `playwright.config.ts` com `webServer` sobe o Next.js automaticamente em `:3000`
+> - Rodar `npx playwright install chromium firefox` na primeira vez
 
 ---
 
