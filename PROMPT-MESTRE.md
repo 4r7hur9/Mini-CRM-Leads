@@ -807,7 +807,7 @@ Implementar e garantir cada item abaixo:
 #### Camada 4 — Logs e detecção
 
 - [ ] Logar toda tentativa de input com caracteres suspeitos (`'`, `"`, `;`, `--`, `/*`) sem expor no response
-- [ ] Em produção, **nunca** retornar mensagem de erro do Prisma/MySQL ao cliente (pode vazar estrutura do banco):
+- [ ] Em produção, **nunca** retornar mensagem de erro do Prisma/PostgreSQL ao cliente (pode vazar estrutura do banco):
   ```ts
   // errorMiddleware.ts — tratamento de erros Prisma
   if (error instanceof PrismaClientKnownRequestError) {
@@ -1889,7 +1889,7 @@ npm install -D jest ts-jest @types/jest supertest @types/supertest
 > ```env
 > # apps/backend/.env.test
 > NODE_ENV=test
-> DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_leads_test
+> DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_test
 > JWT_SECRET=test-secret-key-minimum-32-chars-here
 > CORS_ORIGIN=http://localhost:3000
 > PORT=3002
@@ -2154,14 +2154,15 @@ test.describe("Kanban", () => {
   test("exibe as 4 colunas de status", async ({ authenticatedPage }) => {
     const page = authenticatedPage;
     await page.goto("/kanban");
+    // Nomes dos data-testid devem bater com os valores do enum LeadStatus do schema.prisma
     await expect(page.locator('[data-testid="column-NOVO"]')).toBeVisible();
     await expect(
-      page.locator('[data-testid="column-CONTATADO"]'),
+      page.locator('[data-testid="column-EM_ATENDIMENTO"]'),
     ).toBeVisible();
     await expect(
-      page.locator('[data-testid="column-QUALIFICADO"]'),
+      page.locator('[data-testid="column-PROPOSTA_ENVIADA"]'),
     ).toBeVisible();
-    await expect(page.locator('[data-testid="column-PERDIDO"]')).toBeVisible();
+    await expect(page.locator('[data-testid="column-FECHADO"]')).toBeVisible();
   });
 
   test("mover card via select de status → aparece na coluna correta", async ({
@@ -2176,10 +2177,10 @@ test.describe("Kanban", () => {
     /* Usar select como alternativa ao drag — mais estável em E2E */
     await card
       .locator('[data-testid="status-select"]')
-      .selectOption("CONTATADO");
+      .selectOption("EM_ATENDIMENTO");
     await expect(
       page
-        .locator('[data-testid="column-CONTATADO"]')
+        .locator('[data-testid="column-EM_ATENDIMENTO"]')
         .locator(`text=${cardName}`),
     ).toBeVisible();
   });
@@ -2299,7 +2300,7 @@ test(leads): add unit tests for LeadService
 test(auth): add integration tests for auth routes
 test(e2e): add Playwright E2E specs for auth, leads and kanban
 chore(playwright): configure playwright with chromium, firefox and mobile
-chore(docker): add docker-compose with postgres, backend and frontend
+chore(docker): add docker-compose with traefik + mysql + phpmyadmin + backend + frontend
 docs(ai): add AI usage documentation
 chore: initial monorepo structure
 ```
@@ -2403,16 +2404,17 @@ Objetivo: banco configurado, schema validado, migration e seed prontos.
 Commits estratégicos:
 
 1. chore(db): bootstrap prisma + datasource mysql
-Contexto: inicializa infraestrutura de persistência.
-Inclui: prisma init, datasource mysql, env example base.
-Impacto: projeto pronto para migrar schema.
+   Contexto: inicializa infraestrutura de persistência.
+   Inclui: prisma init, datasource mysql, env example base.
+   Impacto: projeto pronto para migrar schema.
 
 2. feat(db): schema completo + migration inicial + seed
-Contexto: materializa modelo de domínio no banco.
-Inclui: User/Lead/Interaction/enums, migration init, seed com usuário e dados de teste.
-Impacto: banco reproduzível e pronto para desenvolvimento.
+   Contexto: materializa modelo de domínio no banco.
+   Inclui: User/Lead/Interaction/enums, migration init, seed com usuário e dados de teste.
+   Impacto: banco reproduzível e pronto para desenvolvimento.
 
 Validação:
+
 - npx prisma migrate dev --name init
 - npx prisma db seed
 - npx prisma studio
@@ -2426,21 +2428,22 @@ Objetivo: servidor TypeScript com arquitetura de camadas e segurança base.
 Commits estratégicos:
 
 1. chore(backend): setup TypeScript + scripts + dependências core
-Contexto: estrutura mínima executável.
-Inclui: dependências runtime/dev, tsconfig, scripts build/dev/start/test.
-Impacto: backend compila e sobe corretamente.
+   Contexto: estrutura mínima executável.
+   Inclui: dependências runtime/dev, tsconfig, scripts build/dev/start/test.
+   Impacto: backend compila e sobe corretamente.
 
 2. feat(core): config de ambiente + prisma singleton + tratamento de erros
-Contexto: robustez operacional e padronização.
-Inclui: config/env.ts, config/database.ts, AppError, asyncHandler, errorMiddleware.
-Impacto: falhas ficam previsíveis e auditáveis.
+   Contexto: robustez operacional e padronização.
+   Inclui: config/env.ts, config/database.ts, AppError, asyncHandler, errorMiddleware.
+   Impacto: falhas ficam previsíveis e auditáveis.
 
 3. feat(app): app.ts/server.ts com helmet, cors, cookie-parser e rate-limit
-Contexto: hardening inicial OWASP.
-Inclui: middlewares globais, bootstrap do servidor, graceful shutdown.
-Impacto: API pronta para receber módulos de negócio.
+   Contexto: hardening inicial OWASP.
+   Inclui: middlewares globais, bootstrap do servidor, graceful shutdown.
+   Impacto: API pronta para receber módulos de negócio.
 
 Validação:
+
 - npm run dev
 - GET /health (ou rota base da API)
 
@@ -2453,16 +2456,17 @@ Objetivo: register, login, logout e me com JWT em cookie httpOnly.
 Commits estratégicos:
 
 1. feat(auth): domínio de autenticação completo
-Contexto: núcleo de identidade e acesso.
-Inclui: validator, repository, service, controller, typing req.user.
-Impacto: autenticação com bcrypt + JWT segura e tipada.
+   Contexto: núcleo de identidade e acesso.
+   Inclui: validator, repository, service, controller, typing req.user.
+   Impacto: autenticação com bcrypt + JWT segura e tipada.
 
 2. feat(auth): middleware e rotas de autenticação integradas
-Contexto: expor fluxo completo para cliente.
-Inclui: authMiddleware, authRoutes, registro no router principal.
-Impacto: endpoints /auth/register, /auth/login, /auth/logout e /auth/me funcionais.
+   Contexto: expor fluxo completo para cliente.
+   Inclui: authMiddleware, authRoutes, registro no router principal.
+   Impacto: endpoints /auth/register, /auth/login, /auth/logout e /auth/me funcionais.
 
 Validação:
+
 - POST /auth/register
 - POST /auth/login
 - GET /auth/me
@@ -2477,16 +2481,17 @@ Objetivo: CRUD de leads com isolamento por usuário autenticado.
 Commits estratégicos:
 
 1. feat(leads): CRUD base de leads com validação
-Contexto: implementar recurso principal do CRM.
-Inclui: validator, repository, service, controller, routes.
-Impacto: criar/listar/editar/remover leads com tipagem e erros padronizados.
+   Contexto: implementar recurso principal do CRM.
+   Inclui: validator, repository, service, controller, routes.
+   Impacto: criar/listar/editar/remover leads com tipagem e erros padronizados.
 
 2. feat(leads): filtros, paginação, busca e PATCH de status
-Contexto: suportar UX de funil/kanban.
-Inclui: query params, paginação, busca por nome/email/empresa, endpoint PATCH status.
-Impacto: API preparada para listagem avançada e board de status.
+   Contexto: suportar UX de funil/kanban.
+   Inclui: query params, paginação, busca por nome/email/empresa, endpoint PATCH status.
+   Impacto: API preparada para listagem avançada e board de status.
 
 Validação:
+
 - GET /leads?page=1&limit=20&status=NOVO&search=acme
 - PATCH /leads/:id/status
 
@@ -2499,16 +2504,17 @@ Objetivo: histórico de contato por lead e visão analítica consolidada.
 Commits estratégicos:
 
 1. feat(interactions): módulo de interações por lead
-Contexto: registrar relacionamento comercial.
-Inclui: validator/repository/service/controller/routes de interações.
-Impacto: timeline de interação por lead com verificação de ownership.
+   Contexto: registrar relacionamento comercial.
+   Inclui: validator/repository/service/controller/routes de interações.
+   Impacto: timeline de interação por lead com verificação de ownership.
 
 2. feat(dashboard): agregações com Promise.all
-Contexto: visão executiva de funil.
-Inclui: service/controller/route para métricas e últimos leads.
-Impacto: endpoint único para alimentar cards do dashboard.
+   Contexto: visão executiva de funil.
+   Inclui: service/controller/route para métricas e últimos leads.
+   Impacto: endpoint único para alimentar cards do dashboard.
 
 Validação:
+
 - POST /leads/:leadId/interactions
 - GET /dashboard
 
@@ -2521,16 +2527,17 @@ Objetivo: reduzir regressão e garantir regras críticas de negócio.
 Commits estratégicos:
 
 1. test(backend): infraestrutura de testes e isolamento de banco
-Contexto: base para suíte confiável.
-Inclui: jest.config.ts, tests/setup.ts, dependências de teste, env de teste.
-Impacto: execução determinística de testes.
+   Contexto: base para suíte confiável.
+   Inclui: jest.config.ts, tests/setup.ts, dependências de teste, env de teste.
+   Impacto: execução determinística de testes.
 
 2. test(backend): suíte unitária e integração para auth e leads
-Contexto: proteger fluxos críticos.
-Inclui: authService.test, leadService.test, auth.test, leads.test.
-Impacto: cobertura mínima do núcleo do CRM.
+   Contexto: proteger fluxos críticos.
+   Inclui: authService.test, leadService.test, auth.test, leads.test.
+   Impacto: cobertura mínima do núcleo do CRM.
 
 Validação:
+
 - npm test
 - npm run test:coverage
 
@@ -2543,21 +2550,22 @@ Objetivo: subir ambiente inteiro com um único comando.
 Commits estratégicos:
 
 1. chore(docker): dockerfiles multi-stage + dockerignore (backend/frontend)
-Contexto: imagens menores e mais seguras.
-Inclui: Dockerfile backend, Dockerfile frontend standalone, dockerignore de ambos.
-Impacto: build previsível, execução com usuário não-root.
+   Contexto: imagens menores e mais seguras.
+   Inclui: Dockerfile backend, Dockerfile frontend standalone, dockerignore de ambos.
+   Impacto: build previsível, execução com usuário não-root.
 
 2. feat(docker): docker-compose com traefik + mysql + phpmyadmin + backend + frontend
-Contexto: orquestração local unificada.
-Inclui: healthcheck mysql, roteamento traefik (/api -> backend, resto -> frontend), rede e volume.
-Impacto: stack inteira operacional em localhost.
+   Contexto: orquestração local unificada.
+   Inclui: healthcheck mysql, roteamento traefik (/api -> backend, resto -> frontend), rede e volume.
+   Impacto: stack inteira operacional em localhost.
 
 3. docs(docker): variáveis e operação
-Contexto: evitar erro de ambiente.
-Inclui: .env.example atualizado, comandos de subida/logs/seed/reset.
-Impacto: onboarding rápido e execução reproduzível.
+   Contexto: evitar erro de ambiente.
+   Inclui: .env.example atualizado, comandos de subida/logs/seed/reset.
+   Impacto: onboarding rápido e execução reproduzível.
 
 Validação:
+
 - docker-compose up -d --build
 - docker-compose ps
 - http://localhost
@@ -2572,21 +2580,22 @@ Objetivo: base do app web com autenticação e estrutura escalável.
 Commits estratégicos:
 
 1. chore(frontend): scaffold Next.js + dependências essenciais
-Contexto: preparar plataforma de UI.
-Inclui: create-next-app, axios, zustand, react-hook-form, zod.
-Impacto: front pronto para implementação por feature.
+   Contexto: preparar plataforma de UI.
+   Inclui: create-next-app, axios, zustand, react-hook-form, zod.
+   Impacto: front pronto para implementação por feature.
 
 2. feat(frontend): infraestrutura de cliente
-Contexto: padronizar comunicação e estado.
-Inclui: services/api.ts, authStore, types compartilhados, validators, utils/constants.
-Impacto: base consistente para páginas privadas.
+   Contexto: padronizar comunicação e estado.
+   Inclui: services/api.ts, authStore, types compartilhados, validators, utils/constants.
+   Impacto: base consistente para páginas privadas.
 
 3. feat(auth-ui): páginas login/register e layout privado
-Contexto: controlar acesso no frontend.
-Inclui: telas de auth, proteção server-side em layout privado.
-Impacto: fluxo autenticado funcional de ponta a ponta.
+   Contexto: controlar acesso no frontend.
+   Inclui: telas de auth, proteção server-side em layout privado.
+   Impacto: fluxo autenticado funcional de ponta a ponta.
 
 Validação:
+
 - login -> redirect dashboard
 - 401 -> redirect login
 
@@ -2599,21 +2608,22 @@ Objetivo: telas finais com UX robusta, acessível e responsiva.
 Commits estratégicos:
 
 1. feat(ui): design system e componentes base responsivos
-Contexto: consistência visual e manutenção.
-Inclui: tokens, breakpoints, Button/Input/Modal/Badge/Spinner/EmptyState, Sidebar/Header.
-Impacto: base visual padronizada e mobile-first.
+   Contexto: consistência visual e manutenção.
+   Inclui: tokens, breakpoints, Button/Input/Modal/Badge/Spinner/EmptyState, Sidebar/Header.
+   Impacto: base visual padronizada e mobile-first.
 
 2. feat(leads-ui): páginas de leads e detalhe com estados completos
-Contexto: fluxo operacional diário do CRM.
-Inclui: listagem, filtros, formulário, detalhes e interações com loading/error/empty.
-Impacto: gestão de leads completa no frontend.
+   Contexto: fluxo operacional diário do CRM.
+   Inclui: listagem, filtros, formulário, detalhes e interações com loading/error/empty.
+   Impacto: gestão de leads completa no frontend.
 
 3. feat(kanban-dashboard): board de status + dashboard com auditoria de responsividade
-Contexto: visão de funil e produtividade.
-Inclui: kanban (dnd + fallback mobile), dashboard de métricas, revisão 320/375/425/768/1024/1280.
-Impacto: experiência confiável em desktop e mobile.
+   Contexto: visão de funil e produtividade.
+   Inclui: kanban (dnd + fallback mobile), dashboard de métricas, revisão 320/375/425/768/1024/1280.
+   Impacto: experiência confiável em desktop e mobile.
 
 Validação:
+
 - Fluxos CRUD completos
 - Kanban atualiza status e persiste
 - Sem overflow horizontal em nenhum breakpoint
@@ -2627,16 +2637,17 @@ Objetivo: garantir fluxos críticos em navegador real.
 Commits estratégicos:
 
 1. test(e2e): setup playwright + fixture de autenticação
-Contexto: base para testes de ponta a ponta.
-Inclui: playwright.config.ts, fixture authenticatedPage, scripts de execução.
-Impacto: suíte E2E pronta para crescer.
+   Contexto: base para testes de ponta a ponta.
+   Inclui: playwright.config.ts, fixture authenticatedPage, scripts de execução.
+   Impacto: suíte E2E pronta para crescer.
 
 2. test(e2e): specs de auth, leads, kanban e dashboard
-Contexto: proteção contra regressão de produto.
-Inclui: auth.spec.ts, leads.spec.ts, kanban.spec.ts, dashboard.spec.ts.
-Impacto: validação automatizada dos fluxos críticos.
+   Contexto: proteção contra regressão de produto.
+   Inclui: auth.spec.ts, leads.spec.ts, kanban.spec.ts, dashboard.spec.ts.
+   Impacto: validação automatizada dos fluxos críticos.
 
 Validação:
+
 - npm run test:e2e
 
 ---
@@ -2648,11 +2659,12 @@ Objetivo: publicação em ambiente real com variáveis corretas.
 Commit estratégico:
 
 1. chore(deploy): configuração de produção e documentação de variáveis
-Contexto: evitar falha de integração entre frontend e backend.
-Inclui: NEXT_PUBLIC_API_URL, CORS_ORIGIN, DATABASE_URL, JWT_SECRET e checklist de smoke test.
-Impacto: deploy replicável e auditável.
+   Contexto: evitar falha de integração entre frontend e backend.
+   Inclui: NEXT_PUBLIC_API_URL, CORS_ORIGIN, DATABASE_URL, JWT_SECRET e checklist de smoke test.
+   Impacto: deploy replicável e auditável.
 
 Validação:
+
 - register -> login -> criar lead -> mover no kanban em produção
 
 ---
@@ -2664,37 +2676,38 @@ Objetivo: entrega final com rastreabilidade técnica e uso de IA documentado.
 Commits estratégicos:
 
 1. docs(ai): documentação completa de uso da IA
-Contexto: atender exigência do teste técnico.
-Inclui: /docs/ai/README.md, prompts.md, decisions.md, review.md.
-Impacto: transparência no processo de construção.
+   Contexto: atender exigência do teste técnico.
+   Inclui: /docs/ai/README.md, prompts.md, decisions.md, review.md.
+   Impacto: transparência no processo de construção.
 
 2. docs(project): README final + checklist de entrega
-Contexto: facilitar avaliação e execução local.
-Inclui: setup local, docker, variáveis, comandos de teste, pendências e diferenciais.
-Impacto: avaliador consegue executar sem fricção.
+   Contexto: facilitar avaliação e execução local.
+   Inclui: setup local, docker, variáveis, comandos de teste, pendências e diferenciais.
+   Impacto: avaliador consegue executar sem fricção.
 
 Validação:
+
 - checklist da Seção 18 completo
 
 ---
 
 ### 📊 MAPA DE COMMITS — RESUMO TOTAL (ESTRATÉGICO)
 
-| Etapa | Descrição | Commits |
-| --- | --- | --- |
-| 1 | Banco MySQL + Prisma | 2 |
-| 2 | Backend fundação | 3 |
-| 3 | Autenticação | 2 |
-| 4 | Leads | 2 |
-| 5 | Interações + Dashboard | 2 |
-| 6 | Testes backend | 2 |
-| 7 | Docker (5 serviços) | 3 |
-| 8 | Frontend base + auth | 3 |
-| 9 | Frontend features + design responsivo | 3 |
-| 9b | E2E Playwright | 2 |
-| 10 | Deploy | 1 |
-| 11 | Documentação e entrega | 2 |
-| TOTAL |  | ~27 commits estratégicos |
+| Etapa | Descrição                             | Commits                  |
+| ----- | ------------------------------------- | ------------------------ |
+| 1     | Banco MySQL + Prisma                  | 2                        |
+| 2     | Backend fundação                      | 3                        |
+| 3     | Autenticação                          | 2                        |
+| 4     | Leads                                 | 2                        |
+| 5     | Interações + Dashboard                | 2                        |
+| 6     | Testes backend                        | 2                        |
+| 7     | Docker (5 serviços)                   | 3                        |
+| 8     | Frontend base + auth                  | 3                        |
+| 9     | Frontend features + design responsivo | 3                        |
+| 9b    | E2E Playwright                        | 2                        |
+| 10    | Deploy                                | 1                        |
+| 11    | Documentação e entrega                | 2                        |
+| TOTAL |                                       | ~27 commits estratégicos |
 
 > Regra prática: commit suficiente para contar história técnica, sem micro-fragmentar demais.
 
