@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as leadController from "../controllers/leadController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validationMiddleware";
+import { interactionRoutes } from "./interactionRoutes";
 import {
   createLeadSchema,
   leadIdParamsSchema,
@@ -16,6 +17,7 @@ leadRoutes.use(authMiddleware);
 
 leadRoutes.post("/", validate({ body: createLeadSchema }), leadController.create);
 leadRoutes.get("/", validate({ query: listLeadsQuerySchema }), leadController.getAll);
+leadRoutes.use("/:leadId/interactions", interactionRoutes);
 leadRoutes.patch(
   "/:id/status",
   validate({ params: leadIdParamsSchema, body: updateLeadStatusSchema }),
