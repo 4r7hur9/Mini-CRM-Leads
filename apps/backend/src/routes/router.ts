@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authRoutes } from "./authRoutes";
+import { dashboardRoutes } from "./dashboardRoutes";
 import { leadRoutes } from "./leadRoutes";
 
 export const apiRouter = Router();
@@ -16,3 +17,4 @@ apiRouter.get("/health", (_req, res) => {
 
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/leads", leadRoutes);
+apiRouter.use("/dashboard", dashboardRoutes);
