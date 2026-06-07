@@ -4,6 +4,20 @@ import { ZodError } from "zod";
 import { env } from "../config/env";
 import { AppError } from "../utils/AppError";
 
+type HttpParseError = SyntaxError & {
+  status?: number;
+  type?: string;
+};
+
+function isJsonParseError(error: unknown): error is HttpParseError {
+  return (
+    error instanceof SyntaxError &&
+    typeof (error as HttpParseError).status === "number" &&
+    (error as HttpParseError).status === 400 &&
+    (error as HttpParseError).type === "entity.parse.failed"
+  );
+}
+
 export const errorMiddleware: ErrorRequestHandler = (error, _req, res, _next) => {
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({
@@ -11,6 +25,16 @@ export const errorMiddleware: ErrorRequestHandler = (error, _req, res, _next) =>
       error: {
         code: error.code,
         message: error.message,
+      },
+    });
+  }
+
+  if (isJsonParseError(error)) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "JSON invalido no corpo da requisicao.",
       },
     });
   }
