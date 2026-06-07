@@ -1,0 +1,26 @@
+http:
+  routers:
+    backend:
+      entryPoints:
+        - web
+      rule: Host(`localhost`) && PathPrefix(`/api`)
+      priority: 100
+      service: backend
+
+    frontend:
+      entryPoints:
+        - web
+      rule: Host(`localhost`)
+      priority: 10
+      service: frontend
+
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: http://backend:3001
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://frontend:3000

@@ -1,0 +1,101 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: mini_crm_traefik
+    restart: unless-stopped
+    command:
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro
+    networks:
+      - mini_crm_net
+
+  mysql:
+    image: mysql:8.4
+    container_name: mini_crm_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root3326}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mini_crm_leads}
+      MYSQL_USER: ${MYSQL_USER:-arthur}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-3326}
+    ports:
+      - "${MYSQL_PORT:-3308}:3306"
+    volumes:
+      - mini_crm_mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u${MYSQL_USER:-arthur} -p${MYSQL_PASSWORD:-3326} --silent",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - mini_crm_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: mini_crm_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+      PMA_USER: ${MYSQL_USER:-arthur}
+      PMA_PASSWORD: ${MYSQL_PASSWORD:-3326}
+    ports:
+      - "8081:80"
+    networks:
+      - mini_crm_net
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: mini_crm_backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: mysql://${MYSQL_USER:-arthur}:${MYSQL_PASSWORD:-3326}@mysql:3306/${MYSQL_DATABASE:-mini_crm_leads}
+      JWT_SECRET: ${JWT_SECRET:-desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    networks:
+      - mini_crm_net
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api/v1}
+    container_name: mini_crm_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+    networks:
+      - mini_crm_net
+
+networks:
+  mini_crm_net:
+    driver: bridge
+
+volumes:
+  mini_crm_mysql_data:
