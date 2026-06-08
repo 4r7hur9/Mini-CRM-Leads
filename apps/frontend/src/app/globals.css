@@ -27,6 +27,7 @@ body {
 body {
   background:
     radial-gradient(circle at top left, rgba(15, 118, 110, 0.13), transparent 30rem),
+    radial-gradient(circle at bottom right, rgba(194, 65, 12, 0.09), transparent 28rem),
     linear-gradient(135deg, var(--background), #e9eef0 48%, #f8efe2);
   color: var(--foreground);
   font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
@@ -48,4 +49,19 @@ a:focus-visible,
 input:focus-visible {
   outline: 3px solid rgba(15, 118, 110, 0.36);
   outline-offset: 3px;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 220ms ease-out both;
 }

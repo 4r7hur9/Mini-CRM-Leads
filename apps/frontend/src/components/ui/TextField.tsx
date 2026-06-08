@@ -14,7 +14,7 @@ export function TextField({ id, label, error, className = "", ...props }: TextFi
       <input
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`min-h-11 rounded-md border border-stone-300 bg-white px-3 text-stone-950 shadow-sm transition placeholder:text-stone-400 focus:border-teal-700 ${className}`}
+        className={`min-h-11 w-full rounded-md border border-stone-300 bg-white px-3 text-stone-950 shadow-sm transition placeholder:text-stone-400 focus:border-teal-700 ${className}`}
         id={id}
         {...props}
       />
