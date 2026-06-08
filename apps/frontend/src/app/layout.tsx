@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Mini CRM de Leads",
-  description: "Stack Docker pronta para a proxima etapa do frontend.",
+  description: "Frontend do Mini CRM de Leads.",
 };
 
 type RootLayoutProps = {
