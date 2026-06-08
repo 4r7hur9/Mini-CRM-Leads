@@ -7,6 +7,10 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(10).startsWith("mysql://"),
   JWT_SECRET: z.string().min(32),
   CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
+  COOKIE_SECURE: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => (value ? value === "true" : process.env.NODE_ENV === "production")),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

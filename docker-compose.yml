@@ -75,6 +75,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-arthur}:${MYSQL_PASSWORD:-3326}@mysql:3306/${MYSQL_DATABASE:-mini_crm_leads}
       JWT_SECRET: ${JWT_SECRET:-desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     networks:
       - mini_crm_net
 

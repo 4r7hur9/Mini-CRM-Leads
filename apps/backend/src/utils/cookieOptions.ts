@@ -5,7 +5,7 @@ export const AUTH_COOKIE_NAME = "mini_crm_token";
 
 export const cookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
+  secure: env.COOKIE_SECURE,
   sameSite: "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
