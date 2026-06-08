@@ -146,26 +146,32 @@ Exemplos:
 
 No fim de cada etapa, responda obrigatoriamente neste formato:
 
-```md
+````md
 ## Etapa concluida: [numero e nome]
 
 ### O que foi feito
+
 - ...
 
 ### Arquivos alterados
+
 - ...
 
 ### Validacoes executadas
+
 - Comando: ...
   Resultado: ...
 
 ### Pendencias ou bloqueios
+
 - ...
 
 ### Acoes manuais para voce
+
 - ...
 
 ### Commit sugerido
+
 ```bash
 git add ...
 git commit -m "tipo(escopo): resumo objetivo da entrega" \
@@ -173,10 +179,11 @@ git commit -m "tipo(escopo): resumo objetivo da entrega" \
   -m "Inclui: ..." \
   -m "Impacto: ..."
 ```
+````
 
 ### Proxima etapa
+
 Posso avancar para a proxima etapa?
-```
 
 ---
 

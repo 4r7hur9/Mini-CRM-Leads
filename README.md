@@ -1,6 +1,6 @@
 # Mini CRM de Leads
 
-## Etapa 7 - Stack Docker completa
+## Stack Docker completa
 
 Esta etapa adiciona a infraestrutura para subir o projeto com um unico `docker compose up -d --build`.
 
@@ -24,6 +24,7 @@ MYSQL_PASSWORD=3326
 MYSQL_PORT=3308
 JWT_SECRET=desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao
 CORS_ORIGIN=http://localhost
+COOKIE_SECURE=false
 NEXT_PUBLIC_API_URL=http://localhost/api/v1
 ```
 
@@ -41,13 +42,17 @@ docker compose down
 
 - Frontend: `http://localhost`
 - Backend health: `http://localhost/api/v1/health`
+- Login: `http://localhost/login`
+- Registro: `http://localhost/register`
+- Area privada: `http://localhost/dashboard`
 - Traefik dashboard: `http://localhost:8080`
 - phpMyAdmin: `http://localhost:8081`
 - MySQL direto no host: `localhost:3308`
 
 ### Observacoes
 
-- O frontend desta etapa e propositalmente minimo. A autenticacao e as telas reais entram na Etapa 8.
+- A autenticacao do frontend foi adicionada na Etapa 8. As telas completas de leads e dashboard visual entram na Etapa 9.
 - O MySQL da stack raiz usa a porta `3308` no host para nao colidir com o compose local da etapa anterior em `mysql-local` (`3307`).
 - O Traefik foi configurado com provider de arquivo para ficar estavel no Docker Desktop do Windows, sem depender da leitura do socket Docker.
+- `COOKIE_SECURE=false` e usado somente no Docker local via HTTP. Em producao com HTTPS, use `COOKIE_SECURE=true`.
 - Se voce quiser usar apenas a stack nova, pode parar o compose antigo de `mysql-local` antes de subir tudo.
