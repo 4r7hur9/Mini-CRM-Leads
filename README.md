@@ -10,7 +10,7 @@ Esta etapa adiciona a infraestrutura para subir o projeto com um unico `docker c
 - `mysql`: banco principal da stack Docker
 - `phpmyadmin`: administracao visual em `http://localhost:8081`
 - `backend`: API Express + Prisma com `migrate deploy` no start
-- `frontend`: app Next.js minimo para validar a stack antes da Etapa 8
+- `frontend`: app Next.js com autenticacao, dashboard, leads, detalhes e Kanban
 
 ### Variaveis opcionais
 
@@ -44,14 +44,15 @@ docker compose down
 - Backend health: `http://localhost/api/v1/health`
 - Login: `http://localhost/login`
 - Registro: `http://localhost/register`
-- Area privada: `http://localhost/dashboard`
+- Dashboard: `http://localhost/dashboard`
+- Leads: `http://localhost/leads`
 - Traefik dashboard: `http://localhost:8080`
 - phpMyAdmin: `http://localhost:8081`
 - MySQL direto no host: `localhost:3308`
 
 ### Observacoes
 
-- A autenticacao do frontend foi adicionada na Etapa 8. As telas completas de leads e dashboard visual entram na Etapa 9.
+- A Etapa 9 adicionou dashboard visual, filtros, CRUD de leads, detalhe com interacoes e Kanban com persistencia de status.
 - O MySQL da stack raiz usa a porta `3308` no host para nao colidir com o compose local da etapa anterior em `mysql-local` (`3307`).
 - O Traefik foi configurado com provider de arquivo para ficar estavel no Docker Desktop do Windows, sem depender da leitura do socket Docker.
 - `COOKIE_SECURE=false` e usado somente no Docker local via HTTP. Em producao com HTTPS, use `COOKIE_SECURE=true`.
