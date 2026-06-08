@@ -53,7 +53,36 @@ docker compose down
 ### Observacoes
 
 - A Etapa 9 adicionou dashboard visual, filtros, CRUD de leads, detalhe com interacoes e Kanban com persistencia de status.
+- A Etapa 9b adiciona suite E2E com Playwright na raiz do projeto, usando o usuario seed `admin@teste.com / Admin@123`.
 - O MySQL da stack raiz usa a porta `3308` no host para nao colidir com o compose local da etapa anterior em `mysql-local` (`3307`).
 - O Traefik foi configurado com provider de arquivo para ficar estavel no Docker Desktop do Windows, sem depender da leitura do socket Docker.
 - `COOKIE_SECURE=false` e usado somente no Docker local via HTTP. Em producao com HTTPS, use `COOKIE_SECURE=true`.
 - Se voce quiser usar apenas a stack nova, pode parar o compose antigo de `mysql-local` antes de subir tudo.
+
+### Testes E2E
+
+Comandos na raiz do projeto:
+
+```bash
+npm install
+npm run test:e2e:install
+npm run test:e2e
+```
+
+Pre-requisitos para rodar os E2E:
+
+- frontend e backend acessiveis em `http://localhost`
+- banco e seed prontos com `admin@teste.com / Admin@123`
+- opcionalmente sobrescrever `PLAYWRIGHT_BASE_URL` se estiver usando outra URL
+- se quiser manter o rate limit ativo e liberar apenas o Playwright, configure no `.env` da raiz:
+
+```env
+RATE_LIMIT_E2E_BYPASS_ENABLED=true
+E2E_TEST_KEY=crie_um_token_longo_e_aleatorio_so_para_testes_locais
+```
+
+Com isso:
+
+- o backend continua com os limites normais para clientes comuns
+- somente requisicoes locais em `localhost` com header `x-e2e-test-key` igual ao token configurado ignoram o rate limit
+- o Playwright envia esse header automaticamente ao ler `E2E_TEST_KEY`

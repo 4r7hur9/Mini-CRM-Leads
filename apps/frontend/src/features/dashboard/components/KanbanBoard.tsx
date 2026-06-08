@@ -41,6 +41,7 @@ function KanbanCard({ lead, onMoveLead }: { lead: Lead; onMoveLead: KanbanBoardP
 
   return (
     <article
+      data-testid="kanban-card"
       className={`rounded-lg border border-stone-200 bg-white p-4 shadow-sm transition ${
         isDragging ? "relative z-20 opacity-80 shadow-xl" : ""
       }`}
@@ -48,7 +49,11 @@ function KanbanCard({ lead, onMoveLead }: { lead: Lead; onMoveLead: KanbanBoardP
       style={style}
     >
       <div className="flex items-start justify-between gap-2">
-        <Link className="font-bold text-stone-950 hover:text-teal-800" href={`/leads/${lead.id}`}>
+        <Link
+          className="font-bold text-stone-950 hover:text-teal-800"
+          data-testid="lead-name"
+          href={`/leads/${lead.id}`}
+        >
           {lead.name}
         </Link>
         <button
@@ -66,6 +71,7 @@ function KanbanCard({ lead, onMoveLead }: { lead: Lead; onMoveLead: KanbanBoardP
 
       <div className="mt-4 md:hidden">
         <SelectField
+          data-testid="status-select"
           id={`status-${lead.id}`}
           label="Mover para"
           onChange={(event) => onMoveLead(lead.id, event.target.value as LeadStatus)}
@@ -97,6 +103,7 @@ function KanbanColumn({
 
   return (
     <section
+      data-testid={`kanban-column-${status}`}
       className={`min-h-80 min-w-[18rem] rounded-lg border p-3 transition ${
         isOver ? "border-teal-400 bg-teal-50" : "border-stone-200 bg-white/65"
       }`}
