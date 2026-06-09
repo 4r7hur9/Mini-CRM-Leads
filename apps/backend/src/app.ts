@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { env } from "./config/env";
+import { healthCheck } from "./controllers/healthController";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 import { generalRateLimiter } from "./middlewares/rateLimitMiddleware";
 import { apiRouter } from "./routes/router";
@@ -15,7 +16,14 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin(origin, callback) {
+      if (!origin || env.CORS_ORIGIN.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new AppError("FORBIDDEN", "Origem nao permitida pelo CORS.", 403));
+    },
     credentials: true,
   }),
 );
@@ -24,15 +32,7 @@ app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 app.use(cookieParser());
 app.use(generalRateLimiter);
 
-app.get("/health", (_req, res) => {
-  return res.status(200).json({
-    success: true,
-    data: {
-      status: "ok",
-      service: "mini-crm-leads-api",
-    },
-  });
-});
+app.get("/health", healthCheck);
 
 app.use("/api/v1", apiRouter);
 

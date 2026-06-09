@@ -3,7 +3,7 @@ http:
     backend:
       entryPoints:
         - web
-      rule: Host(`localhost`) && PathPrefix(`/api`)
+      rule: Host(`localhost`) && (PathPrefix(`/api`) || Path(`/health`))
       priority: 100
       service: backend
 

@@ -4,11 +4,13 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl
 
+ARG DATABASE_URL
+
 COPY package*.json ./
 RUN npm ci
 
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN DATABASE_URL="${DATABASE_URL:-mysql://placeholder:placeholder@localhost:3306/placeholder}" npx prisma generate
 
 COPY tsconfig.json ./
 COPY src ./src

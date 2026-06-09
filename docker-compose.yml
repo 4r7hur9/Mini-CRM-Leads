@@ -76,6 +76,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE:-strict}
       RATE_LIMIT_E2E_BYPASS_ENABLED: ${RATE_LIMIT_E2E_BYPASS_ENABLED:-false}
       RATE_LIMIT_E2E_BYPASS_KEY: ${E2E_TEST_KEY:-}
     networks:
