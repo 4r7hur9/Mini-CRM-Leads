@@ -114,7 +114,8 @@ COOKIE_SAME_SITE=none
 
 Observacoes importantes:
 
-- `NEXT_PUBLIC_API_URL` e lida em build time no frontend
+- o navegador chama a API por `/api/v1` no mesmo dominio do frontend
+- `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend
 - `CORS_ORIGIN` aceita uma lista separada por virgula para liberar mais de uma origin conhecida
 - para frontend e backend em dominios diferentes, use `COOKIE_SECURE=true` e `COOKIE_SAME_SITE=none`
 - o backend inclui `apps/backend/railway.json` com healthcheck em `/health`

@@ -17,7 +17,7 @@ Este projeto foi preparado para publicar:
 
 1. publicar o backend no Railway;
 2. obter a URL publica do backend;
-3. publicar o frontend no Vercel com `NEXT_PUBLIC_API_URL` apontando para a API;
+3. publicar o frontend no Vercel com `NEXT_PUBLIC_API_URL` apontando para a API que sera usada pelo rewrite;
 4. executar smoke test completo.
 
 ## Frontend no Vercel
@@ -36,7 +36,9 @@ NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
 
 Observacao importante:
 
-- `NEXT_PUBLIC_API_URL` e lida em build time;
+- o navegador usa `/api/v1` no mesmo dominio do frontend;
+- `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend;
+- esse proxy evita depender de cookie de terceiro entre Vercel e Railway;
 - se a URL do backend mudar, o frontend precisa de novo deploy.
 
 ## Backend no Railway

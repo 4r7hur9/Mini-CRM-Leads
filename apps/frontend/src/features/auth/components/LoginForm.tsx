@@ -7,7 +7,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import { API_BASE_URL } from "@/lib/constants";
 import { getApiErrorMessage } from "@/services/api";
 import { useAuthStore } from "../store/authStore";
 import { loginSchema, type LoginFormData } from "../validators";
@@ -16,7 +15,7 @@ export function LoginForm() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const [formError, setFormError] = useState<string | null>(null);
-  const shouldShowSeedHint = API_BASE_URL.includes("localhost");
+  const shouldShowSeedHint = process.env.NODE_ENV !== "production";
 
   const {
     formState: { errors, isSubmitting },
