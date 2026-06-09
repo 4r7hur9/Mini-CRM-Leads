@@ -25,6 +25,7 @@ MYSQL_PORT=3308
 JWT_SECRET=desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao
 CORS_ORIGIN=http://localhost
 COOKIE_SECURE=false
+COOKIE_SAME_SITE=strict
 NEXT_PUBLIC_API_URL=http://localhost/api/v1
 ```
 
@@ -41,7 +42,8 @@ docker compose down
 ### URLs esperadas
 
 - Frontend: `http://localhost`
-- Backend health: `http://localhost/api/v1/health`
+- Backend health: `http://localhost/health`
+- Backend API health: `http://localhost/api/v1/health`
 - Login: `http://localhost/login`
 - Registro: `http://localhost/register`
 - Dashboard: `http://localhost/dashboard`
@@ -86,3 +88,33 @@ Com isso:
 - o backend continua com os limites normais para clientes comuns
 - somente requisicoes locais em `localhost` com header `x-e2e-test-key` igual ao token configurado ignoram o rate limit
 - o Playwright envia esse header automaticamente ao ler `E2E_TEST_KEY`
+
+## Deploy
+
+Foi adicionada uma documentacao especifica de deploy em:
+
+- `docs/deploy/README.md`
+
+Resumo do fluxo:
+
+- Vercel para o frontend com `Root Directory = apps/frontend`
+- Railway para o backend com `Root Directory = apps/backend`
+- Railway MySQL para `DATABASE_URL`
+
+Variaveis mais importantes em producao:
+
+```env
+NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
+DATABASE_URL=mysql://usuario:senha@host:porta/database
+JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
+CORS_ORIGIN=http://localhost,http://localhost:3000,https://mini-crm-leads.vercel.app
+COOKIE_SECURE=true
+COOKIE_SAME_SITE=none
+```
+
+Observacoes importantes:
+
+- `NEXT_PUBLIC_API_URL` e lida em build time no frontend
+- `CORS_ORIGIN` aceita uma lista separada por virgula para liberar mais de uma origin conhecida
+- para frontend e backend em dominios diferentes, use `COOKIE_SECURE=true` e `COOKIE_SAME_SITE=none`
+- o backend inclui `apps/backend/railway.json` com healthcheck em `/health`
