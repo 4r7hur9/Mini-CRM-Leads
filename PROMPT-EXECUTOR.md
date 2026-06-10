@@ -1,700 +1,475 @@
-# PROMPT EXECUTOR - Mini CRM de Leads
+# PROMPT-EXECUTOR
 
-> Use este prompt para executar o `PROMPT-MESTRE.md` com controle de etapas.
-> Este arquivo nao substitui o prompt mestre. Ele e uma camada operacional para impedir execucao baguncada, excesso de escopo por turno e avancos sem validacao.
+> Use este arquivo para executar o `PROMPT-MESTRE.md` em etapas pequenas, revisaveis e bloqueadas por aprovacao.
+> Ele nao substitui o prompt mestre. Ele e a camada operacional que controla ordem, validacao, pausas e escopo.
 
 ---
 
 ## 1. Missao
 
-Voce deve construir o projeto **Mini CRM de Leads** completo seguindo o arquivo `PROMPT-MESTRE.md` como fonte de verdade tecnica.
+Sua missao e executar o projeto **Mini CRM de Leads** completo com base no `PROMPT-MESTRE.md`, seguindo uma estrategia de entrega profissional:
 
-O objetivo e executar tudo em etapas, da **Etapa 1** ate a **Etapa 11**, incluindo os diferenciais opcionais previstos no prompt mestre:
+- uma branch dedicada de migracao;
+- uma etapa por vez;
+- validacao tecnica ao final de cada etapa;
+- registro continuo no `HISTORY.md`;
+- acoes manuais claras;
+- commits semanticos sugeridos;
+- pausa obrigatoria para aprovacao antes de avancar.
 
-- Docker completo com Traefik, MySQL, phpMyAdmin, backend e frontend.
-- Testes E2E com Playwright.
-- Preparacao para deploy em Vercel e Railway.
-- Documentacao final de uso de IA.
-- Checklist manual de entrega, incluindo GitHub privado e convite para `rodrigoamb`.
+O objetivo final desta fase e:
 
-Voce deve agir como um engenheiro de software senior completo: rigoroso, pragmatico, seguro, organizado e focado em entregar software funcionando. Nao use frases vagas como "QI 299" para justificar decisoes. Demonstre senioridade pela execucao: leitura do contexto, escolhas simples, validacao real, commits bons e comunicacao clara.
+- migrar totalmente do banco legado para PostgreSQL;
+- atualizar o runtime para `Node 24 LTS + npm 11`;
+- substituir referencias ativas do banco legado por PostgreSQL, `pgAdmin` e stack nova;
+- adicionar feedback visual com `react-toastify`;
+- alinhar backend, frontend, Docker, testes, Playwright, deploy e documentacao;
+- preservar a `main` como referencia estavel ate o fechamento da branch de migracao.
 
 ---
 
 ## 2. Fonte de Verdade
 
-Antes de qualquer implementacao, leia e use o `PROMPT-MESTRE.md`.
+Antes de qualquer implementacao:
+
+1. leia `PROMPT-MESTRE.md`;
+2. leia `README.md`;
+3. leia `HISTORY.md`, se existir;
+4. inspecione `git status`;
+5. descubra a etapa atual;
+6. execute somente a etapa atual.
 
 Regras de precedencia:
 
-1. `PROMPT-MESTRE.md` define a arquitetura, stack, schema, endpoints, seguranca, design, testes, Docker, deploy, documentacao e ordem oficial.
-2. `PROMPT-EXECUTOR.md` define o processo de execucao, validacao, pausa e aprovacao entre etapas.
-3. Se houver conflito tecnico entre os dois, siga o `PROMPT-MESTRE.md`.
-4. Se houver conflito de processo, siga este `PROMPT-EXECUTOR.md`.
-5. Se alguma instrucao estiver inviavel no ambiente atual, explique o bloqueio, proponha a menor adaptacao segura e aguarde aprovacao antes de mudar o escopo.
-
-Se estiver trabalhando em uma IA com acesso ao repositorio, comece sempre inspecionando:
-
-- `PROMPT-MESTRE.md`
-- `README.md`
-- estrutura atual de pastas
-- `git status`
-- arquivos de configuracao ja existentes
-- etapa atual ou primeira etapa incompleta
+1. `PROMPT-MESTRE.md` e a fonte de verdade tecnica.
+2. `PROMPT-EXECUTOR.md` e a fonte de verdade do processo de execucao.
+3. `HISTORY.md` guarda a cronologia real do que ja foi feito, ajustado, quebrado, corrigido e validado.
+4. Se houver conflito tecnico, siga o `PROMPT-MESTRE.md`.
+5. Se houver conflito de processo, siga este `PROMPT-EXECUTOR.md`.
 
 ---
 
-## 3. Modo de Trabalho Obrigatorio
+## 3. Estrategia de Branch Obrigatoria
 
-Trabalhe **uma etapa por vez**.
+Trabalhe nesta iniciativa em uma branch longa e dedicada:
 
-Voce esta proibido de avancar para a proxima etapa sem:
+```bash
+git checkout -b chore/postgresql-migration
+```
+
+Regras:
+
+- toda esta migracao acontece nessa branch;
+- nao usar sub-branches por etapa como padrao;
+- fazer pushes frequentes para backup e rastreabilidade;
+- se a `main` mudar durante a migracao:
+
+```bash
+git fetch origin
+git merge origin/main
+```
+
+- evitar rebase com force-push em fluxo longo;
+- so integrar de volta para `main` depois de validar build, testes, E2E, Docker, deploy e docs finais;
+- o merge final para `main` deve preservar historico, preferencialmente sem squash.
+
+---
+
+## 4. Modo de Trabalho Obrigatorio
+
+Voce deve trabalhar **uma etapa por vez**.
+
+E proibido avancar para a proxima etapa sem:
 
 - concluir a implementacao da etapa atual;
-- rodar as validacoes tecnicas possiveis;
-- corrigir falhas encontradas;
-- listar o que o usuario precisa fazer manualmente;
-- sugerir o commit da etapa;
-- perguntar explicitamente: **"Posso avancar para a proxima etapa?"**
+- validar o que for possivel tecnicamente;
+- corrigir falhas antes de seguir;
+- atualizar o `HISTORY.md`;
+- listar acoes manuais do usuario;
+- sugerir commits da etapa;
+- perguntar explicitamente:
 
-Se o usuario pedir "execute tudo", interprete como:
+**"Posso avancar para a proxima etapa?"**
 
-> "Execute todas as etapas, mas com pausa obrigatoria, validacao e aprovacao ao final de cada uma."
+Se o usuario disser "execute tudo", interprete como:
 
-Nao implemente multiplas etapas em um unico bloco, exceto quando a etapa atual depender de um ajuste minimo de etapa anterior para corrigir quebra real. Nesse caso, explique a correcao.
+> "Execute em sequencia, mas pare ao final de cada etapa com validacao, resumo, acoes manuais e pedido de aprovacao."
 
 ---
 
-## 4. Protocolo Fixo Para Cada Etapa
+## 5. Regras de Execucao Senior
 
-Em toda etapa, siga exatamente este ciclo.
+Durante qualquer etapa:
 
-### 4.1 Diagnostico inicial
+- leia antes de editar;
+- preserve o escopo da etapa;
+- prefira mudancas pequenas e verificaveis;
+- siga a arquitetura existente quando ela continuar valida;
+- remova legados ativos do banco anterior quando fizer sentido tecnico;
+- nao deixe referencias ativas do banco anterior no produto final;
+- use `HISTORY.md` para registrar decisoes e incidentes;
+- nao commite `.env`, segredos ou credenciais reais;
+- documente variaveis em arquivos de exemplo;
+- valide com build, testes, Docker e E2E conforme a etapa permitir;
+- se build, teste, migration, Docker ou deploy falhar, corrija antes de avancar.
 
-Antes de editar arquivos:
+---
 
-1. Leia a parte relevante do `PROMPT-MESTRE.md`.
-2. Inspecione o estado atual do repositorio.
-3. Identifique arquivos existentes que serao reaproveitados.
-4. Verifique se ha mudancas nao relacionadas no Git.
-5. Declare qual etapa sera executada e qual sera o criterio de pronto.
+## 6. Protocolo Obrigatorio por Etapa
 
-### 4.2 Plano curto da etapa
+Em toda etapa, siga sempre este ciclo:
 
-Antes de codar, apresente um plano curto com:
+### 6.1 Diagnostico inicial
 
-- objetivo da etapa;
-- principais entregaveis;
-- arquivos ou areas que serao alteradas;
-- validacoes que serao executadas;
-- riscos ou dependencias manuais.
+Antes de editar:
 
-### 4.3 Implementacao
+1. releia a parte relevante do `PROMPT-MESTRE.md`;
+2. revise o estado atual do repositorio;
+3. identifique os arquivos que serao alterados;
+4. declare qual etapa sera executada;
+5. defina criterio de pronto.
 
-Durante a implementacao:
+### 6.2 Plano curto da etapa
 
-- preserve a arquitetura definida no `PROMPT-MESTRE.md`;
-- mantenha separacao por camadas;
-- nao invente stack nova;
-- nao remova codigo do usuario sem necessidade;
-- nao commite `.env`, tokens, credenciais ou arquivos sensiveis;
-- use `.env.example` para documentar variaveis;
-- valide input externo com Zod;
-- mantenha regras de ownership por usuario;
-- trate erros de forma padronizada;
-- prefira simplicidade funcional a overengineering.
+Explique:
 
-### 4.4 Validacao tecnica
+- objetivo;
+- entregaveis;
+- arquivos ou modulos afetados;
+- validacoes que serao rodadas;
+- riscos e acoes manuais esperadas.
 
-Ao final da etapa, rode as validacoes possiveis no ambiente atual.
+### 6.3 Implementacao
+
+Implemente apenas o necessario para fechar a etapa atual.
+
+### 6.4 Validacao tecnica
+
+Rode as validacoes possiveis no ambiente real.
 
 Exemplos:
 
+- `node -v`
+- `npm -v`
 - `npm run build`
 - `npm test`
-- `npm run lint`
 - `npx prisma validate`
+- `npx prisma generate`
 - `npx prisma migrate dev`
-- `docker-compose up -d --build`
+- `npm run db:seed`
+- `docker compose config`
+- `docker compose up -d --build`
+- `docker compose ps`
 - `npm run test:e2e`
 
-Se um comando falhar:
+### 6.5 Atualizacao do HISTORY
 
-1. leia o erro;
-2. corrija a causa;
-3. rode novamente;
-4. so pare se o bloqueio depender de credencial, servico externo, permissao ou acao manual do usuario.
+Ao final de cada etapa, atualize `HISTORY.md` com:
 
-### 4.5 Checklist manual
+- o que foi feito;
+- decisoes importantes;
+- problemas encontrados;
+- como foram resolvidos;
+- pendencias ou observacoes.
 
-Toda etapa deve terminar com uma lista clara do que o usuario precisa fazer manualmente, quando houver.
+### 6.6 Checklist manual
 
-Exemplos:
+Sempre liste o que o usuario precisa fazer manualmente ao final da etapa.
 
-- preencher `.env`;
-- iniciar Docker Desktop;
-- criar banco local;
-- abrir uma URL no navegador;
-- conferir tela visualmente;
-- fazer login em Vercel, Railway ou GitHub;
+### 6.7 Resumo e pausa
+
+Ao final da etapa, entregue:
+
+- arquivos alterados;
+- comandos executados;
+- resultado das validacoes;
+- acoes manuais;
+- commits sugeridos;
+- pergunta final:
+
+**"Posso avancar para a proxima etapa?"**
+
+---
+
+## 7. Mapa Oficial de Etapas desta Migracao
+
+### Etapa 0 - Reorganizar o plano oficial
+
+Objetivo:
+
+- atualizar `PROMPT-MESTRE.md` e `PROMPT-EXECUTOR.md`;
+- consolidar PostgreSQL como banco oficial;
+- consolidar pgAdmin como ferramenta administrativa oficial;
+- adicionar `HISTORY.md` como artefato obrigatorio;
+- registrar etapas complementares ja vividas e as novas da migracao.
+
+Acoes manuais:
+
+- criar a branch `chore/postgresql-migration`.
+
+Commit sugerido:
+
+- `docs(planning): reorganizar fluxo oficial para migracao postgresql`
+
+### Etapa 1 - Upgrade de runtime
+
+Objetivo:
+
+- migrar projeto para `Node 24 LTS + npm 11`;
+- atualizar Dockerfiles;
+- alinhar manifests e lockfiles;
+- validar tudo antes da troca de banco.
+
+Acoes manuais:
+
+- atualizar Node local para 24 LTS.
+
+Commit sugerido:
+
+- `chore(runtime): atualizar stacks para node 24 lts e npm 11`
+
+### Etapa 2 - Infra Docker PostgreSQL
+
+Objetivo:
+
+- substituir a stack legada pela stack PostgreSQL no compose principal;
+- substituir a ferramenta administrativa legada por pgAdmin;
+- trocar o compose isolado legado por `postgres-local`;
+- revisar portas, volumes, healthcheck e variaveis.
+
+Acoes manuais:
+
+- `docker compose down -v` na stack antiga, se desejar reset completo;
+- revisar volumes antigos, se quiser limpar legado.
+
+Commits sugeridos:
+
+- `chore(docker): substituir banco legado por postgres na stack principal`
+- `chore(docker): substituir stack local isolada por postgres`
+
+### Etapa 3 - Prisma, migration inicial e seed
+
+Objetivo:
+
+- trocar Prisma para `postgresql`;
+- ajustar `DATABASE_URL`;
+- recriar a migration inicial para PostgreSQL;
+- preservar seed funcional.
+
+Credenciais seed esperadas:
+
+- `admin@teste.com`
+- `Admin@123`
+
+Acoes manuais:
+
+- aceitar reset do banco;
+- revisar tabelas no pgAdmin.
+
+Commits sugeridos:
+
+- `chore(db): migrar datasource e urls para postgresql`
+- `feat(db): recriar migration inicial e seed em postgres`
+
+### Etapa 4 - Testes backend em PostgreSQL
+
+Objetivo:
+
+- alinhar ambiente de teste do backend ao PostgreSQL;
+- manter os mesmos comportamentos cobertos;
+- documentar que os testes atuais usam banco real de teste via Prisma.
+
+Acoes manuais:
+
+- garantir banco de teste PostgreSQL disponivel.
+
+Commit sugerido:
+
+- `test(backend): alinhar suite com postgres`
+
+### Etapa 5 - Feedback visual com React-Toastify
+
+Objetivo:
+
+- adicionar `react-toastify`;
+- registrar `ToastContainer` global;
+- aplicar toasts em auth, CRUD principal, interacoes, Kanban e logout;
+- manter erros de campo inline.
+
+Acoes manuais:
+
+- revisar UX dos toasts em mobile e desktop.
+
+Commit sugerido:
+
+- `feat(ui): adicionar feedback visual com react-toastify`
+
+### Etapa 6 - E2E alinhado ao PostgreSQL e aos toasts
+
+Objetivo:
+
+- alinhar Playwright ao seed atual;
+- validar toasts de erro e sucesso;
+- manter fluxos de auth, dashboard, leads, interacoes e Kanban.
+
+Acoes manuais:
+
+- garantir stack completa no ar;
+- instalar browsers do Playwright, se necessario.
+
+Commit sugerido:
+
+- `test(e2e): alinhar suite com postgres e toasts`
+
+### Etapa 7 - Deploy PostgreSQL em Railway/Vercel
+
+Objetivo:
+
+- provisionar PostgreSQL no Railway;
+- trocar backend para `${{ Postgres.DATABASE_URL }}` ou equivalente do servico real;
+- manter proxy `/api/v1` no frontend;
+- validar smoke test antes de desligar qualquer legado remoto.
+
+Acoes manuais:
+
+- criar o servico PostgreSQL no Railway;
+- preencher variaveis de ambiente;
+- redeploy backend e frontend;
+- confirmar URLs publicas.
+
+Commits sugeridos:
+
+- `chore(deploy): migrar railway para postgres`
+- `docs(deploy): atualizar fluxo para postgres`
+
+### Etapa 8 - Documentacao final e HISTORY
+
+Objetivo:
+
+- concluir `HISTORY.md`;
+- atualizar `README.md`, `docs/deploy/README.md`, arquivos `.env` de exemplo e prompts;
+- remover referencias ativas ao banco legado do codigo, docs e processo.
+
+Regra:
+
+- o banco anterior pode aparecer apenas como legado historico dentro do `HISTORY.md`.
+
+Commits sugeridos:
+
+- `docs(history): registrar cronologia completa do projeto`
+- `docs(project): concluir documentacao final em postgresql`
+
+### Etapa 9 - Fechamento da branch e retorno para main
+
+Objetivo:
+
+- validar build, testes, E2E, Docker, deploy e docs;
+- atualizar branch com `origin/main` se necessario;
+- preparar merge final sem squash.
+
+Acoes manuais:
+
+- revisar diff completo da branch;
+- executar merge final para `main`;
+- registrar conclusao em `HISTORY.md`.
+
+Integracao final:
+
+- merge da branch `chore/postgresql-migration` em `main` preservando historico.
+
+---
+
+## 8. Politica de Bloqueio
+
+Se qualquer um destes itens falhar, nao avance:
+
+- build;
+- teste backend;
+- migration;
+- seed;
+- Docker;
+- E2E;
+- deploy;
+- smoke test;
+- documentacao critica inconsistente.
+
+Nesse caso:
+
+1. explique a falha;
+2. identifique causa raiz;
+3. corrija;
+4. revalide;
+5. so entao retome a etapa.
+
+---
+
+## 9. Acoes Externas que a IA Nao Conclui Sozinha
+
+Deixe explicito quando depender de acao manual externa, por exemplo:
+
 - criar repositorio privado;
 - convidar `rodrigoamb`;
-- confirmar deploy;
-- executar comandos que exigem permissao local.
+- criar servicos no Railway;
+- criar projeto no Vercel;
+- preencher variaveis em paineis externos;
+- autenticar em provedores;
+- confirmar URLs publicas;
+- aprovar permissoes;
+- executar merge final em `main`, quando o fluxo do usuario exigir controle manual.
 
-### 4.6 Fechamento da etapa
+---
 
-No fim de cada etapa, responda obrigatoriamente neste formato:
+## 10. Formato Obrigatorio de Resposta ao Final de Cada Etapa
 
-````md
-## Etapa concluida: [numero e nome]
+Use exatamente esta estrutura:
 
-### O que foi feito
+### Etapa concluida
 
-- ...
+- etapa executada:
+- objetivo cumprido:
 
 ### Arquivos alterados
 
-- ...
+- lista objetiva dos arquivos editados, criados, removidos ou renomeados
 
-### Validacoes executadas
+### Comandos executados
 
-- Comando: ...
-  Resultado: ...
+- lista dos comandos realmente rodados
 
-### Pendencias ou bloqueios
+### Validacao tecnica
 
-- ...
+- o que passou
+- o que falhou
+- o que nao foi possivel validar
 
-### Acoes manuais para voce
+### Atualizacao do HISTORY
 
-- ...
+- resumo do registro adicionado ao `HISTORY.md`
 
-### Commit sugerido
+### Acoes manuais
 
-```bash
-git add ...
-git commit -m "tipo(escopo): resumo objetivo da entrega" \
-  -m "Contexto: ..." \
-  -m "Inclui: ..." \
-  -m "Impacto: ..."
-```
-````
+1. passo a passo do que o usuario deve fazer
 
-### Proxima etapa
+### Commits sugeridos
 
-Posso avancar para a proxima etapa?
+- um ou mais commits semanticos, em portugues, coerentes com a etapa
+
+### Proxima decisao
+
+**Posso avancar para a proxima etapa?**
 
 ---
 
-## 5. Politica de Bloqueio
-
-Uma etapa nao pode ser considerada concluida se:
-
-- o projeto nao compila por erro introduzido na etapa;
-- testes essenciais da etapa falham;
-- migrations nao rodam quando a etapa depende delas;
-- endpoint principal da etapa nao responde;
-- fluxo visual principal esta quebrado;
-- Docker nao sobe na etapa de Docker;
-- E2E nao roda na etapa de E2E por erro de implementacao;
-- documentacao obrigatoria nao foi atualizada na etapa final.
-
-Bloqueios aceitaveis, desde que explicados:
-
-- falta de Docker Desktop;
-- falta de MySQL local;
-- ausencia de credenciais externas;
-- login necessario em GitHub, Vercel ou Railway;
-- porta local ocupada;
-- comando indisponivel no sistema;
-- dependencia externa fora do ar.
-
-Nunca finja que uma etapa passou. Se nao validou, diga exatamente o que nao foi validado e por que.
-
----
-
-## 6. Mapa Oficial de Execucao
-
-Siga a ordem abaixo. Ela replica a Secao 20 do `PROMPT-MESTRE.md`.
-
-### Etapa 1 - Banco de Dados (MySQL + Prisma)
-
-Objetivo: banco configurado, Prisma pronto, schema validado, migration inicial e seed.
-
-Entregaveis:
-
-- estrutura `apps/backend`;
-- Prisma configurado com MySQL;
-- `schema.prisma` com User, Lead, Interaction e enums;
-- migration inicial;
-- seed com usuario e dados de teste;
-- `.env.example` necessario.
-
-Validacoes:
-
-- `npx prisma validate`
-- `npx prisma migrate dev --name init`
-- `npx prisma db seed`
-- opcional: `npx prisma studio`
-
-Acoes manuais:
-
-- garantir MySQL rodando;
-- preencher `DATABASE_URL`;
-- abrir Prisma Studio, se necessario;
-- conferir se seed criou usuario de teste.
-
-Commit sugerido:
-
-- `chore(db): bootstrap prisma + datasource mysql`
-- `feat(db): schema completo + migration inicial + seed`
-
----
-
-### Etapa 2 - Backend Fundacao (Express + Seguranca)
-
-Objetivo: servidor TypeScript com arquitetura base, middlewares globais e tratamento de erro.
-
-Entregaveis:
-
-- setup Node.js + Express + TypeScript;
-- scripts de desenvolvimento, build e start;
-- `app.ts` e `server.ts`;
-- config de ambiente com Zod;
-- Prisma singleton;
-- `AppError`, `asyncHandler` e `errorMiddleware`;
-- Helmet, CORS, cookie-parser e rate limit;
-- rota de health check.
-
-Validacoes:
-
-- `npm run build`
-- `npm run dev`
-- chamada para `/health`
-
-Acoes manuais:
-
-- conferir porta `3001`;
-- ajustar `.env` local se necessario;
-- testar endpoint no navegador, curl, Insomnia ou Postman.
-
-Commit sugerido:
-
-- `chore(backend): setup TypeScript + scripts + dependencias core`
-- `feat(core): config de ambiente + prisma singleton + tratamento de erros`
-- `feat(app): app express com seguranca base`
-
----
-
-### Etapa 3 - Autenticacao
-
-Objetivo: registro, login, logout e rota `/me` com JWT em cookie httpOnly.
-
-Entregaveis:
-
-- validators de auth;
-- repository, service e controller de auth;
-- hash de senha com bcrypt;
-- JWT com payload seguro;
-- cookie httpOnly;
-- middleware de autenticacao;
-- tipagem de `req.user`;
-- rotas `/auth/register`, `/auth/login`, `/auth/logout`, `/auth/me`.
-
-Validacoes:
-
-- registrar usuario;
-- fazer login;
-- acessar `/auth/me`;
-- fazer logout;
-- confirmar erro generico em credenciais invalidas.
-
-Acoes manuais:
-
-- testar com cliente HTTP que preserve cookies;
-- conferir se cookie esta httpOnly;
-- confirmar que `passwordHash` nunca aparece na resposta.
-
-Commit sugerido:
-
-- `feat(auth): dominio de autenticacao completo`
-- `feat(auth): middleware e rotas de autenticacao integradas`
-
----
-
-### Etapa 4 - Leads (CRUD + Ownership)
-
-Objetivo: CRUD de leads com isolamento por usuario autenticado.
-
-Entregaveis:
-
-- validators de lead;
-- repository, service, controller e routes;
-- criar, listar, buscar por id, atualizar e deletar lead;
-- filtros por status;
-- busca por nome, email e empresa;
-- paginacao;
-- PATCH de status para Kanban;
-- ownership em todas as consultas.
-
-Validacoes:
-
-- criar lead autenticado;
-- listar leads do usuario;
-- filtrar por status;
-- buscar por texto;
-- atualizar lead;
-- mover status;
-- deletar lead;
-- tentar acessar lead de outro usuario e receber 404.
-
-Acoes manuais:
-
-- testar endpoints com cookies ativos;
-- criar dois usuarios para validar isolamento;
-- conferir payloads e mensagens de erro.
-
-Commit sugerido:
-
-- `feat(leads): CRUD base com validacao e ownership`
-- `feat(leads): filtros paginacao busca e status`
-
----
-
-### Etapa 5 - Interacoes + Dashboard
-
-Objetivo: registrar historico de contato por lead e expor metricas consolidadas.
-
-Entregaveis:
-
-- modulo de interacoes;
-- criar, listar e remover interacoes;
-- validacao de ownership via lead;
-- dashboard com total de leads, leads por status, total de interacoes e ultimos leads;
-- queries paralelas quando fizer sentido.
-
-Validacoes:
-
-- criar interacao em lead proprio;
-- listar interacoes ordenadas;
-- deletar interacao;
-- impedir interacao em lead de outro usuario;
-- consultar `/dashboard` e conferir agregacoes.
-
-Acoes manuais:
-
-- criar massa minima de leads e interacoes;
-- conferir se os numeros do dashboard batem com o banco.
-
-Commit sugerido:
-
-- `feat(interactions): modulo de interacoes por lead`
-- `feat(dashboard): agregacoes do funil de leads`
-
----
-
-### Etapa 6 - Testes Backend (Jest + Supertest)
-
-Objetivo: proteger regras criticas do backend com testes unitarios e de integracao.
-
-Entregaveis:
-
-- Jest + ts-jest + Supertest configurados;
-- ambiente de teste isolado;
-- setup/teardown de teste;
-- testes de auth;
-- testes de leads;
-- cobertura minima de services e rotas criticas.
-
-Validacoes:
-
-- `npm test`
-- `npm run test:coverage`, se configurado
-
-Acoes manuais:
-
-- garantir banco de teste disponivel;
-- conferir `.env.test`;
-- aceitar que testes podem resetar dados do banco de teste.
-
-Commit sugerido:
-
-- `test(backend): infraestrutura de testes`
-- `test(backend): suite de auth e leads`
-
----
-
-### Etapa 7 - Docker Completo (5 servicos)
-
-Objetivo: subir a stack inteira com um comando.
-
-Entregaveis:
-
-- Dockerfile multi-stage do backend;
-- Dockerfile standalone do frontend;
-- `.dockerignore` em backend e frontend;
-- `docker-compose.yml` com Traefik, MySQL, phpMyAdmin, backend e frontend;
-- healthcheck do MySQL;
-- roteamento `/api` para backend;
-- frontend em `http://localhost`;
-- phpMyAdmin em `http://localhost:8081`;
-- documentacao de variaveis e comandos.
-
-Validacoes:
-
-- `docker-compose up -d --build`
-- `docker-compose ps`
-- abrir `http://localhost`
-- abrir `http://localhost/api/v1/health`
-- abrir `http://localhost:8081`
-
-Acoes manuais:
-
-- iniciar Docker Desktop;
-- liberar portas `80`, `8080`, `8081`, `3000`, `3001` se necessario;
-- conferir logs dos containers;
-- conferir credenciais do phpMyAdmin.
-
-Commit sugerido:
-
-- `chore(docker): dockerfiles multi-stage`
-- `feat(docker): compose com traefik mysql backend e frontend`
-- `docs(docker): variaveis e comandos de operacao`
-
----
-
-### Etapa 8 - Frontend Base (Next.js + Auth)
-
-Objetivo: base web com autenticacao funcional e estrutura de cliente.
-
-Entregaveis:
-
-- Next.js App Router com TypeScript;
-- TailwindCSS;
-- Axios com `withCredentials`;
-- store de auth com Zustand;
-- validators e types compartilhados quando aplicavel;
-- paginas de login e registro;
-- layout privado;
-- redirect para login quando nao autenticado;
-- redirect para dashboard quando autenticado.
-
-Validacoes:
-
-- `npm run build`
-- fluxo register -> dashboard;
-- fluxo login -> dashboard;
-- refresh mantendo sessao;
-- logout voltando para login;
-- 401 redirecionando para login.
-
-Acoes manuais:
-
-- rodar backend;
-- preencher `NEXT_PUBLIC_API_URL`;
-- testar no navegador;
-- conferir cookies no DevTools.
-
-Commit sugerido:
-
-- `chore(frontend): scaffold next com dependencias essenciais`
-- `feat(frontend): cliente api e estado de autenticacao`
-- `feat(auth-ui): telas e fluxo de autenticacao`
-
----
-
-### Etapa 9 - Frontend Features + Design/Responsivo
-
-Objetivo: entregar telas finais do CRM com UX robusta, responsiva e acessivel.
-
-Entregaveis:
-
-- design system base;
-- componentes Button, Input, Modal, Badge, Spinner e EmptyState;
-- Sidebar e Header;
-- dashboard visual;
-- listagem de leads;
-- filtros;
-- formulario de criar/editar lead;
-- pagina de detalhes;
-- interacoes por lead;
-- Kanban com dnd-kit;
-- fallback mobile por select ou controle equivalente;
-- estados loading, error, empty e success;
-- responsividade em 320, 375, 425, 768, 1024 e 1280 px.
-
-Validacoes:
-
-- `npm run build`
-- criar lead pela UI;
-- editar lead pela UI;
-- deletar lead pela UI;
-- criar interacao pela UI;
-- mover lead no Kanban e persistir;
-- validar sem overflow horizontal nos breakpoints.
-
-Acoes manuais:
-
-- testar visualmente no navegador;
-- abrir DevTools em breakpoints;
-- conferir contraste, foco, labels e navegacao por teclado.
-
-Commit sugerido:
-
-- `feat(ui): design system responsivo`
-- `feat(leads-ui): telas de leads e detalhes`
-- `feat(kanban-dashboard): kanban e dashboard responsivos`
-
----
-
-### Etapa 9b - E2E (Playwright)
-
-Objetivo: validar fluxos criticos em navegador real.
-
-Entregaveis:
-
-- Playwright configurado;
-- fixture de autenticacao;
-- specs de auth;
-- specs de leads;
-- specs de kanban;
-- specs de dashboard;
-- scripts no package.json;
-- documentacao de como rodar.
-
-Validacoes:
-
-- `npx playwright install chromium firefox`, quando necessario;
-- `npm run test:e2e`;
-- evidencias de falha, se houver.
-
-Acoes manuais:
-
-- permitir instalacao dos browsers do Playwright;
-- garantir backend e banco rodando;
-- garantir seed com usuario de teste;
-- revisar screenshots, traces ou videos se falhar.
-
-Commit sugerido:
-
-- `test(e2e): setup playwright e fixture de auth`
-- `test(e2e): specs de auth leads kanban e dashboard`
-
----
-
-### Etapa 10 - Deploy (Vercel + Railway)
-
-Objetivo: preparar e orientar publicacao em ambiente real.
-
-Entregaveis:
-
-- ajustes de variaveis de producao;
-- documentacao de deploy;
-- checklist de smoke test;
-- instrucoes para Vercel;
-- instrucoes para Railway;
-- observacoes de CORS, cookies, `secure`, `sameSite` e `withCredentials`;
-- registro honesto do que foi ou nao publicado.
-
-Validacoes:
-
-- build local de producao;
-- checklist de variaveis;
-- smoke test em producao se as URLs forem fornecidas:
-  - register;
-  - login;
-  - criar lead;
-  - mover no Kanban;
-  - logout.
-
-Acoes manuais:
-
-- criar/importar projeto no Vercel;
-- criar/importar backend no Railway;
-- criar banco MySQL no Railway ou configurar banco externo;
-- preencher `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN`, `NEXT_PUBLIC_API_URL`;
-- confirmar URLs publicas;
-- ajustar dominio e cookies se frontend/backend estiverem em dominios diferentes.
-
-Commit sugerido:
-
-- `chore(deploy): configuracao e documentacao de producao`
-
----
-
-### Etapa 11 - Documentacao e Entrega
-
-Objetivo: finalizar entrega com README, docs de IA, checklist e rastreabilidade tecnica.
-
-Entregaveis:
-
-- `README.md` completo;
-- `/docs/ai/README.md`;
-- `/docs/ai/prompts.md`;
-- `/docs/ai/decisions.md`;
-- `/docs/ai/review.md`;
-- checklist final da Secao 18;
-- registro de funcionalidades entregues e pendentes;
-- comandos de instalacao, execucao, testes e Docker;
-- usuario de teste;
-- instrucoes de deploy, se aplicavel.
-
-Validacoes:
-
-- leitura completa do README;
-- comandos documentados batem com scripts reais;
-- `.env.example` existe e esta coerente;
-- checklist de entrega revisado;
-- `git status` limpo apos commits.
-
-Acoes manuais:
-
-- criar repositorio GitHub privado;
-- subir codigo;
-- convidar `rodrigoamb`;
-- conferir se migrations foram commitadas;
-- conferir se nenhum `.env` foi commitado;
-- enviar links de deploy, se existirem;
-- revisar documentacao final antes de entregar.
-
-Commit sugerido:
-
-- `docs(ai): documentacao completa de uso da IA`
-- `docs(project): README final e checklist de entrega`
-
----
-
-## 7. Comando Inicial Para a IA Executora
-
-Quando for iniciar a execucao, use esta mensagem:
-
-```md
-Leia primeiro `PROMPT-EXECUTOR.md` e `PROMPT-MESTRE.md`.
-
-Quero executar o projeto completo, mas uma etapa por vez.
-
-Comece identificando o estado atual do repositorio e execute somente a primeira etapa incompleta da Secao 20 do `PROMPT-MESTRE.md`.
-
-No fim da etapa, rode as validacoes possiveis, liste as acoes manuais, sugira o commit e pare perguntando:
-
-"Posso avancar para a proxima etapa?"
-```
-
----
-
-## 8. Regras Para Qualidade da Entrega
-
-Durante toda a execucao:
-
-- priorize software funcionando antes de diferenciais;
-- nunca esconda falhas de teste ou build;
-- mantenha o escopo do teste tecnico;
-- documente decisoes importantes;
-- preserve clareza para avaliador junior/senior;
-- evite arquitetura decorativa sem uso real;
-- valide seguranca nos pontos realmente sensiveis;
-- use commits que contem uma historia tecnica coerente;
-- mantenha README e docs alinhados com o que foi realmente implementado.
-
-O resultado final esperado e um projeto que o avaliador consiga clonar, configurar, rodar, testar e entender sem depender de explicacoes fora do repositorio.
+## 11. Regra Final de Conduta
+
+Voce nao deve executar a migracao de forma baguncada nem "de uma vez sem freio".
+
+Voce deve agir como um engenheiro de software senior responsavel:
+
+- le o contexto antes;
+- modifica com criterio;
+- valida o que construiu;
+- documenta o que mudou;
+- registra a historia;
+- orienta o usuario no manual;
+- e pede aprovacao antes de seguir.

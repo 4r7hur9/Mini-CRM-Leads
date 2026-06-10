@@ -4,7 +4,7 @@ Este projeto foi preparado para publicar:
 
 - frontend no Vercel;
 - backend no Railway;
-- banco MySQL no Railway.
+- banco PostgreSQL no Railway.
 
 ## Visao geral
 
@@ -15,55 +15,29 @@ Este projeto foi preparado para publicar:
 
 ## Ordem recomendada
 
-1. publicar o backend no Railway;
-2. obter a URL publica do backend;
-3. publicar o frontend no Vercel com `NEXT_PUBLIC_API_URL` apontando para a API que sera usada pelo rewrite;
-4. executar smoke test completo.
-
-## Frontend no Vercel
-
-### Root Directory
-
-No Vercel, importe o mesmo repositorio Git e configure:
-
-- `Root Directory`: `apps/frontend`
-
-### Variavel obrigatoria
-
-```env
-NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
-```
-
-Observacao importante:
-
-- o navegador usa `/api/v1` no mesmo dominio do frontend;
-- `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend;
-- esse proxy evita depender de cookie de terceiro entre Vercel e Railway;
-- se a URL do backend mudar, o frontend precisa de novo deploy.
+1. provisionar o PostgreSQL no Railway;
+2. publicar o backend no Railway;
+3. obter a URL publica do backend;
+4. publicar o frontend no Vercel com `NEXT_PUBLIC_API_URL`;
+5. executar smoke test completo.
 
 ## Backend no Railway
 
 ### Root Directory
 
-No Railway, conecte o mesmo repositorio Git e configure:
+- `apps/backend`
 
-- `Root Directory`: `apps/backend`
+O projeto inclui:
 
-O projeto inclui `apps/backend/Dockerfile` e `apps/backend/railway.json`.
-
-Observacao importante sobre Prisma no build:
-
-- o `Dockerfile` do backend roda `prisma generate` durante o build;
-- por isso, o arquivo foi preparado para aceitar `DATABASE_URL` como `ARG` no build do Railway;
-- se a variavel real ainda nao estiver pronta, o build usa uma URL placeholder apenas para gerar o client do Prisma;
-- a conexao real continua obrigatoria em runtime para `prisma migrate deploy` e para a API subir.
+- `apps/backend/Dockerfile`
+- `apps/backend/railway.json`
 
 ### Variaveis obrigatorias
 
 ```env
-DATABASE_URL=mysql://usuario:senha@host:porta/database
+DATABASE_URL=postgresql://usuario:senha@host:porta/database?schema=public
 JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
-CORS_ORIGIN=http://localhost,http://localhost:3000,https://mini-crm-leads.vercel.app
+CORS_ORIGIN=https://seu-frontend.vercel.app
 COOKIE_SECURE=true
 COOKIE_SAME_SITE=none
 ```
@@ -74,17 +48,48 @@ COOKIE_SAME_SITE=none
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_GENERAL_MAX=300
 RATE_LIMIT_AUTH_MAX=10
+RATE_LIMIT_E2E_BYPASS_ENABLED=false
+RATE_LIMIT_E2E_BYPASS_KEY=
 ```
 
-No Railway, se o banco MySQL estiver no mesmo projeto, a forma recomendada e criar no backend:
+### Banco no mesmo projeto Railway
+
+Se o PostgreSQL estiver no mesmo projeto, use a variavel compartilhada do proprio servico. Exemplo conceitual:
 
 ```env
-DATABASE_URL=${{ MySQL.MYSQL_URL }}
+DATABASE_URL=${{ Postgres.DATABASE_URL }}
 ```
 
-O nome `MySQL` deve bater com o nome real do servico no painel do Railway.
+Importante:
 
-## Cookies, CORS e credenciais
+- o nome `Postgres` deve bater com o nome real do servico no seu painel;
+- confirme no modal de conexao do Railway qual e a variavel exata exibida para o seu banco.
+
+### Prisma no build e no runtime
+
+- o `Dockerfile` roda `prisma generate` durante o build;
+- por isso existe uma URL placeholder apenas para gerar o client;
+- a conexao real continua obrigatoria em runtime para `prisma migrate deploy` e para a API subir.
+
+## Frontend no Vercel
+
+### Root Directory
+
+- `apps/frontend`
+
+### Variavel obrigatoria
+
+```env
+NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
+```
+
+Observacoes:
+
+- o navegador usa `/api/v1` no mesmo dominio do frontend;
+- `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend;
+- se a URL do backend mudar, o frontend precisa de novo deploy.
+
+## Cookies, CORS e sessao
 
 Este projeto usa:
 
@@ -97,37 +102,26 @@ Para frontend e backend em dominios diferentes, use:
 ```env
 COOKIE_SECURE=true
 COOKIE_SAME_SITE=none
-CORS_ORIGIN=http://localhost,http://localhost:3000,https://mini-crm-leads.vercel.app
+CORS_ORIGIN=https://seu-frontend.vercel.app
 ```
 
-`CORS_ORIGIN` aceita uma lista separada por virgula. Mantenha apenas origins conhecidas e usadas por voce.
-
-Se voce servir frontend e backend no mesmo dominio via proxy reverso, pode manter:
+Se voce tiver mais de uma origin conhecida, pode separar por virgula:
 
 ```env
-COOKIE_SECURE=true
-COOKIE_SAME_SITE=strict
+CORS_ORIGIN=http://localhost,http://localhost:3000,https://seu-frontend.vercel.app
 ```
 
-## Healthcheck do Railway
+## Healthcheck
 
 O arquivo `apps/backend/railway.json` configura:
 
-- `healthcheckPath`: `/health`
-- `healthcheckTimeout`: `120`
-- politica de reinicio em falha
+- `healthcheckPath: /health`
+- `healthcheckTimeout: 120`
 
-O endpoint esperado e:
+Endpoints esperados:
 
-```txt
-GET /health
-```
-
-A API tambem expoe a mesma verificacao em:
-
-```txt
-GET /api/v1/health
-```
+- `GET /health`
+- `GET /api/v1/health`
 
 ## Smoke test de producao
 
@@ -139,16 +133,18 @@ Depois que as URLs publicas estiverem prontas:
 4. criar lead;
 5. editar lead;
 6. mover lead no Kanban;
-7. validar dashboard;
-8. fazer logout;
-9. tentar abrir `/dashboard` sem sessao e confirmar redirecionamento.
+7. registrar interacao;
+8. validar dashboard;
+9. fazer logout;
+10. tentar abrir `/dashboard` sem sessao e confirmar redirecionamento.
 
-## Registro honesto desta etapa
+## Limites do que a IA nao conclui sozinha
 
-Nesta etapa, o repositorio ficou preparado para deploy, mas a publicacao final depende de acoes manuais:
+Ainda dependem de acao manual externa:
 
 - criar projeto no Vercel;
 - criar projeto e banco no Railway;
-- preencher variaveis;
+- preencher variaveis no painel;
 - confirmar URLs publicas;
-- executar smoke test em producao.
+- aceitar permissoes e autenticar nos servicos;
+- executar o smoke test final em producao.

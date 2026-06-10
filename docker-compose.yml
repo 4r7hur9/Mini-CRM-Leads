@@ -16,24 +16,23 @@ services:
     networks:
       - mini_crm_net
 
-  mysql:
-    image: mysql:8.4
-    container_name: mini_crm_mysql
+  postgres:
+    image: postgres:17-alpine
+    container_name: mini_crm_postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root3326}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-mini_crm_leads}
-      MYSQL_USER: ${MYSQL_USER:-arthur}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-3326}
+      POSTGRES_DB: ${POSTGRES_DB:-mini_crm_leads}
+      POSTGRES_USER: ${POSTGRES_USER:-arthur}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-3326}
     ports:
-      - "${MYSQL_PORT:-3308}:3306"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
-      - mini_crm_mysql_data:/var/lib/mysql
+      - mini_crm_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "mysqladmin ping -h localhost -u${MYSQL_USER:-arthur} -p${MYSQL_PASSWORD:-3326} --silent",
+          "pg_isready -U ${POSTGRES_USER:-arthur} -d ${POSTGRES_DB:-mini_crm_leads}",
         ]
       interval: 5s
       timeout: 5s
@@ -42,21 +41,22 @@ services:
     networks:
       - mini_crm_net
 
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: mini_crm_phpmyadmin
+  pgadmin:
+    image: dpage/pgadmin4:9.5
+    container_name: mini_crm_pgadmin
     restart: unless-stopped
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 0
-      PMA_USER: ${MYSQL_USER:-arthur}
-      PMA_PASSWORD: ${MYSQL_PASSWORD:-3326}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@mini-crm.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123456}
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+      PGADMIN_CONFIG_LOGIN_BANNER: "'Mini CRM de Leads'"
     ports:
       - "8081:80"
+    volumes:
+      - mini_crm_pgadmin_data:/var/lib/pgadmin
     networks:
       - mini_crm_net
 
@@ -67,12 +67,12 @@ services:
     container_name: mini_crm_backend
     restart: unless-stopped
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: mysql://${MYSQL_USER:-arthur}:${MYSQL_PASSWORD:-3326}@mysql:3306/${MYSQL_DATABASE:-mini_crm_leads}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arthur}:${POSTGRES_PASSWORD:-3326}@postgres:5432/${POSTGRES_DB:-mini_crm_leads}?schema=public
       JWT_SECRET: ${JWT_SECRET:-desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
@@ -102,4 +102,5 @@ networks:
     driver: bridge
 
 volumes:
-  mini_crm_mysql_data:
+  mini_crm_postgres_data:
+  mini_crm_pgadmin_data:

@@ -3,6 +3,7 @@
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { useAuthStore } from "../store/authStore";
 
 export function LogoutButton() {
@@ -11,8 +12,13 @@ export function LogoutButton() {
   const status = useAuthStore((state) => state.status);
 
   async function handleLogout() {
-    await logout();
-    router.replace("/login");
+    try {
+      await logout();
+      notifySuccess("Sessao encerrada com sucesso.");
+      router.replace("/login");
+    } catch (error) {
+      notifyError(error, "Nao foi possivel sair da conta.");
+    }
   }
 
   return (

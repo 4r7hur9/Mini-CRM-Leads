@@ -3,18 +3,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import { getApiErrorMessage } from "@/services/api";
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { useAuthStore } from "../store/authStore";
 import { registerSchema, type RegisterFormData } from "../validators";
 
 export function RegisterForm() {
   const router = useRouter();
   const registerUser = useAuthStore((state) => state.register);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const {
     formState: { errors, isSubmitting },
@@ -30,24 +28,17 @@ export function RegisterForm() {
   });
 
   async function onSubmit(data: RegisterFormData) {
-    setFormError(null);
-
     try {
       await registerUser(data);
+      notifySuccess("Conta criada com sucesso.");
       router.replace("/dashboard");
     } catch (error) {
-      setFormError(getApiErrorMessage(error));
+      notifyError(error, "Nao foi possivel criar a conta.");
     }
   }
 
   return (
     <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
-      {formError ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-          {formError}
-        </div>
-      ) : null}
-
       <TextField
         autoComplete="name"
         error={errors.name?.message}

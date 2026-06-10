@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Spinner } from "@/components/ui/Spinner";
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { getApiErrorMessage } from "@/services/api";
 import { formatDate } from "@/lib/formatters";
 import { LEAD_STATUSES, leadStatusLabels } from "@/features/leads/constants";
@@ -54,9 +55,11 @@ export function DashboardPageClient() {
     try {
       await updateLeadStatus(leadId, status);
       setSummary(await getDashboardSummary());
+      notifySuccess(`Lead movido para ${leadStatusLabels[status]}.`);
     } catch (requestError) {
       setLeads(previous);
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel mover o lead.");
     }
   }
 

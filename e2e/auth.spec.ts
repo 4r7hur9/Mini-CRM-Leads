@@ -22,10 +22,11 @@ test.describe("Auth", () => {
       page.getByRole("button", { name: /Criar conta/i }).click(),
     ]);
 
+    await expect(page.getByText("Conta criada com sucesso.")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Pipeline de leads" })).toBeVisible();
   });
 
-  test("login invalido exibe mensagem de erro", async ({ page }) => {
+  test("login invalido exibe toast de erro", async ({ page }) => {
     await page.goto("/login");
 
     await page.getByLabel("E-mail").fill(seededUser.email);
@@ -47,6 +48,7 @@ test.describe("Auth", () => {
       page.getByRole("button", { name: /^Entrar$/i }).click(),
     ]);
 
+    await expect(page.getByText("Login realizado com sucesso.")).toBeVisible();
     await expect(page.getByText("Ola, Admin Teste")).toBeVisible();
 
     await Promise.all([
@@ -59,6 +61,7 @@ test.describe("Auth", () => {
       page.getByRole("button", { name: /Sair/i }).click(),
     ]);
 
+    await expect(page.getByText("Sessao encerrada com sucesso.")).toBeVisible();
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole("heading", { name: "Entrar no CRM" })).toBeVisible();
   });

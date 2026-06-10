@@ -1,69 +1,163 @@
 # Mini CRM de Leads
 
-## Stack Docker completa
+Mini CRM full-stack para gestao de leads, autenticacao com cookie httpOnly, dashboard, Kanban, interacoes e deploy em Railway + Vercel.
 
-Esta etapa adiciona a infraestrutura para subir o projeto com um unico `docker compose up -d --build`.
+## Stack
 
-### Servicos
+- `frontend`: Next.js App Router + TypeScript
+- `backend`: Express + TypeScript
+- `orm`: Prisma
+- `banco`: PostgreSQL
+- `ui admin banco`: pgAdmin
+- `proxy local`: Traefik
+- `testes backend`: Jest + Supertest
+- `testes e2e`: Playwright
+- `feedback visual`: react-toastify
 
-- `traefik`: roteia `http://localhost` para o frontend e `/api/*` para o backend
-- `mysql`: banco principal da stack Docker
-- `phpmyadmin`: administracao visual em `http://localhost:8081`
-- `backend`: API Express + Prisma com `migrate deploy` no start
-- `frontend`: app Next.js com autenticacao, dashboard, leads, detalhes e Kanban
+## Estrutura principal
 
-### Variaveis opcionais
+- `apps/frontend`
+- `apps/backend`
+- `docker-compose.yml`
+- `postgres-local/docker-compose.yml`
+- `docs/deploy/README.md`
+- `HISTORY.md`
+- `PROMPT-MESTRE.md`
+- `PROMPT-EXECUTOR.md`
 
-O `docker-compose.yml` ja possui defaults seguros para desenvolvimento. Se quiser sobrescrever algum valor, crie um arquivo `.env` na raiz com estas chaves:
+## Variaveis de ambiente
+
+Arquivos de referencia:
+
+- `.env.example`
+- `apps/backend/.env.example`
+- `apps/frontend/.env.local.example`
+
+Se quiser usar a stack completa localmente, copie a raiz:
+
+```bash
+cp .env.example .env
+```
+
+Principais chaves da raiz:
 
 ```env
-MYSQL_ROOT_PASSWORD=root3326
-MYSQL_DATABASE=mini_crm_leads
-MYSQL_USER=arthur
-MYSQL_PASSWORD=3326
-MYSQL_PORT=3308
+POSTGRES_DB=mini_crm_leads
+POSTGRES_USER=arthur
+POSTGRES_PASSWORD=3326
+POSTGRES_PORT=5433
+PGADMIN_DEFAULT_EMAIL=admin@mini-crm.local
+PGADMIN_DEFAULT_PASSWORD=admin123456
 JWT_SECRET=desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao
 CORS_ORIGIN=http://localhost
 COOKIE_SECURE=false
 COOKIE_SAME_SITE=strict
 NEXT_PUBLIC_API_URL=http://localhost/api/v1
+RATE_LIMIT_E2E_BYPASS_ENABLED=false
+E2E_TEST_KEY=
 ```
 
-### Comandos principais
+## Subir tudo com Docker
 
 ```bash
 docker compose up -d --build
 docker compose ps
 docker compose logs -f backend
 docker compose exec backend npx prisma db seed
-docker compose down
 ```
+
+### Servicos da stack principal
+
+- `traefik`
+- `postgres`
+- `pgadmin`
+- `backend`
+- `frontend`
 
 ### URLs esperadas
 
-- Frontend: `http://localhost`
-- Backend health: `http://localhost/health`
-- Backend API health: `http://localhost/api/v1/health`
-- Login: `http://localhost/login`
-- Registro: `http://localhost/register`
-- Dashboard: `http://localhost/dashboard`
-- Leads: `http://localhost/leads`
-- Traefik dashboard: `http://localhost:8080`
-- phpMyAdmin: `http://localhost:8081`
-- MySQL direto no host: `localhost:3308`
+- frontend: `http://localhost`
+- backend health: `http://localhost/health`
+- backend api health: `http://localhost/api/v1/health`
+- login: `http://localhost/login`
+- registro: `http://localhost/register`
+- dashboard do Traefik: `http://localhost:8080`
+- pgAdmin: `http://localhost:8081`
+- PostgreSQL direto no host: `localhost:5433`
 
-### Observacoes
+### Credenciais seed
 
-- A Etapa 9 adicionou dashboard visual, filtros, CRUD de leads, detalhe com interacoes e Kanban com persistencia de status.
-- A Etapa 9b adiciona suite E2E com Playwright na raiz do projeto, usando o usuario seed `admin@teste.com / Admin@123`.
-- O MySQL da stack raiz usa a porta `3308` no host para nao colidir com o compose local da etapa anterior em `mysql-local` (`3307`).
-- O Traefik foi configurado com provider de arquivo para ficar estavel no Docker Desktop do Windows, sem depender da leitura do socket Docker.
-- `COOKIE_SECURE=false` e usado somente no Docker local via HTTP. Em producao com HTTPS, use `COOKIE_SECURE=true`.
-- Se voce quiser usar apenas a stack nova, pode parar o compose antigo de `mysql-local` antes de subir tudo.
+- email: `admin@teste.com`
+- senha: `Admin@123`
 
-### Testes E2E
+## Banco isolado para desenvolvimento/testes
 
-Comandos na raiz do projeto:
+Quando quiser subir apenas o banco local isolado:
+
+```bash
+cd postgres-local
+docker compose up -d
+docker compose ps
+```
+
+Porta exposta:
+
+- `localhost:5434`
+
+URL esperada para backend local:
+
+```env
+DATABASE_URL=postgresql://arthur:3326@localhost:5434/mini_crm_leads?schema=public
+```
+
+URL esperada para testes:
+
+```env
+DATABASE_URL=postgresql://arthur:3326@localhost:5434/mini_crm_leads_test?schema=public
+```
+
+## Rodar sem Docker completo
+
+### Backend
+
+```bash
+cd apps/backend
+npm install
+npx prisma generate
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd apps/frontend
+npm install
+npm run dev
+```
+
+## Prisma
+
+Comandos principais no backend:
+
+```bash
+npx prisma validate
+npx prisma generate
+npx prisma migrate dev --name init_postgresql
+npm run db:seed
+```
+
+## Testes
+
+### Backend
+
+```bash
+cd apps/backend
+npm test
+```
+
+### E2E
+
+Na raiz:
 
 ```bash
 npm install
@@ -71,51 +165,40 @@ npm run test:e2e:install
 npm run test:e2e
 ```
 
-Pre-requisitos para rodar os E2E:
-
-- frontend e backend acessiveis em `http://localhost`
-- banco e seed prontos com `admin@teste.com / Admin@123`
-- opcionalmente sobrescrever `PLAYWRIGHT_BASE_URL` se estiver usando outra URL
-- se quiser manter o rate limit ativo e liberar apenas o Playwright, configure no `.env` da raiz:
+Se quiser liberar apenas o Playwright do rate limit local:
 
 ```env
 RATE_LIMIT_E2E_BYPASS_ENABLED=true
 E2E_TEST_KEY=crie_um_token_longo_e_aleatorio_so_para_testes_locais
 ```
 
-Com isso:
-
-- o backend continua com os limites normais para clientes comuns
-- somente requisicoes locais em `localhost` com header `x-e2e-test-key` igual ao token configurado ignoram o rate limit
-- o Playwright envia esse header automaticamente ao ler `E2E_TEST_KEY`
-
 ## Deploy
 
-Foi adicionada uma documentacao especifica de deploy em:
+Resumo:
 
-- `docs/deploy/README.md`
-
-Resumo do fluxo:
-
-- Vercel para o frontend com `Root Directory = apps/frontend`
-- Railway para o backend com `Root Directory = apps/backend`
-- Railway MySQL para `DATABASE_URL`
+- frontend no Vercel com `Root Directory = apps/frontend`
+- backend no Railway com `Root Directory = apps/backend`
+- banco PostgreSQL no Railway
 
 Variaveis mais importantes em producao:
 
 ```env
 NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
-DATABASE_URL=mysql://usuario:senha@host:porta/database
+DATABASE_URL=postgresql://usuario:senha@host:porta/database?schema=public
 JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
-CORS_ORIGIN=http://localhost,http://localhost:3000,https://mini-crm-leads.vercel.app
+CORS_ORIGIN=https://seu-frontend.vercel.app
 COOKIE_SECURE=true
 COOKIE_SAME_SITE=none
 ```
 
-Observacoes importantes:
+Doc detalhada:
 
-- o navegador chama a API por `/api/v1` no mesmo dominio do frontend
-- `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend
-- `CORS_ORIGIN` aceita uma lista separada por virgula para liberar mais de uma origin conhecida
-- para frontend e backend em dominios diferentes, use `COOKIE_SECURE=true` e `COOKIE_SAME_SITE=none`
-- o backend inclui `apps/backend/railway.json` com healthcheck em `/health`
+- `docs/deploy/README.md`
+
+## Contexto vivo
+
+O historico tecnico do projeto fica em:
+
+- `HISTORY.md`
+
+Ele registra etapas, incidentes, correcoes e decisoes da migracao e das entregas anteriores.

@@ -9,7 +9,7 @@ process.env.JWT_SECRET =
   process.env.JWT_SECRET ?? "test_jwt_secret_minimum_32_chars_123456789";
 process.env.DATABASE_URL =
   process.env.DATABASE_URL ??
-  "mysql://arthur:3326@localhost:3307/mini_crm_leads_test";
+  "postgresql://arthur:3326@localhost:5434/mini_crm_leads_test?schema=public";
 
 const databaseUrl = process.env.DATABASE_URL;
 

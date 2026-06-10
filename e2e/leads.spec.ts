@@ -23,6 +23,7 @@ async function createLead(page: Page, leadName: string) {
   await page.getByLabel("Observacoes").fill("Lead criado automaticamente pelo Playwright.");
   await page.getByRole("button", { name: "Criar lead" }).click();
 
+  await expect(page.getByText("Lead criado com sucesso.")).toBeVisible();
   const leadCard = getLeadCard(page, leadName);
   await expect(leadCard).toBeVisible();
 
@@ -50,6 +51,7 @@ test.describe("Leads", () => {
     await page.getByLabel("Empresa ou origem").fill(updatedCompany);
     await page.getByRole("button", { name: "Salvar lead" }).click();
 
+    await expect(page.getByText("Lead atualizado com sucesso.")).toBeVisible();
     await expect(leadCard.getByText(updatedCompany)).toBeVisible();
   });
 
@@ -65,6 +67,7 @@ test.describe("Leads", () => {
     await page.getByLabel("Descricao").fill(interactionDescription);
     await page.getByRole("button", { name: "Registrar interacao" }).click();
 
+    await expect(page.getByText("Interacao registrada com sucesso.")).toBeVisible();
     await expect(page.getByText(interactionDescription)).toBeVisible();
 
     page.once("dialog", (dialog) => dialog.accept());
@@ -74,6 +77,7 @@ test.describe("Leads", () => {
       page.getByRole("button", { name: /Excluir/i }).first().click(),
     ]);
 
+    await expect(page.getByText("Lead removido com sucesso.")).toBeVisible();
     await expect(page.getByRole("link", { name: leadName })).toHaveCount(0);
   });
 });

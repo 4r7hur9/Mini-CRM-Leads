@@ -16,7 +16,7 @@ const corsOriginSchema = z
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
-  DATABASE_URL: z.string().min(10).startsWith("mysql://"),
+  DATABASE_URL: z.string().min(10).startsWith("postgresql://"),
   JWT_SECRET: z.string().min(32),
   CORS_ORIGIN: corsOriginSchema,
   COOKIE_SECURE: z
