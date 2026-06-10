@@ -1,101 +1,298 @@
 # HISTORY
 
-## Visao geral
+Registro cronologico e tecnico do Mini CRM de Leads.
 
-Este arquivo registra a historia tecnica do Mini CRM de Leads para manter contexto entre etapas, revisoes e migracoes.
+O formato aqui mistura narrativa curta com pontos de auditoria, para manter contexto humano sem perder rastreabilidade.
 
-## Linha do tempo
+## 1. Origem do projeto
 
-### Base original
+Objetivo inicial:
 
-- Estrutura inicial do monorepo com backend Express + Prisma, frontend Next.js e Docker local.
-- Persistencia original em MySQL.
-- Deploy preparado com Railway para o backend e Vercel para o frontend.
+- criar um Mini CRM de Leads full-stack para teste tecnico;
+- usar backend Express + Prisma;
+- usar frontend Next.js;
+- entregar deploy em Railway + Vercel;
+- manter testes backend e E2E;
+- documentar o uso de IA e as decisoes tecnicas.
 
-### Evolucoes entregues antes desta branch
+Estado inicial:
 
-- Autenticacao com JWT em cookie httpOnly.
-- CRUD de leads com ownership por usuario.
-- Interacoes por lead e dashboard com metricas.
-- Docker completo com Traefik.
-- Frontend autenticado, dashboard, Kanban e responsividade.
-- Suite backend com Jest e suite E2E com Playwright.
-- Ajustes de sessao, CORS e proxy para Railway + Vercel.
+- stack com MySQL;
+- docker local com Traefik;
+- prompts oficiais em fase de definicao;
+- fluxo dividido em etapas para evitar retrabalho.
 
-### Branch `chore/postgresql-migration`
+## 2. Prompts oficiais e fluxo de execucao
 
-#### Etapa 0 - Reorganizacao do plano oficial
+Decisao:
 
-- Criada branch dedicada para a migracao longa.
-- Inicio da revisao dos prompts oficiais para remover referencias ativas a MySQL.
-- `HISTORY.md` adotado como artefato obrigatorio de contexto.
+- criar `PROMPT-MESTRE.md` como fonte de verdade tecnica;
+- criar `PROMPT-EXECUTOR.md` como camada operacional;
+- exigir pausa, validacao e aprovacao ao fim de cada etapa.
 
-#### Etapa 1 - Upgrade de runtime
+Auditoria:
 
-- Dockerfiles de backend e frontend atualizados para `node:24-alpine`.
-- `package.json` da raiz, backend e frontend alinhados com `engines` para Node 24 e npm 11.
-- Criado `.nvmrc` com a versao de referencia local.
+- etapas numeradas e controladas;
+- commits semanticos por bloco funcional;
+- registro de contexto no `HISTORY.md`.
 
-#### Etapa 2 - Infra Docker PostgreSQL
+## 3. Primeiras entregas do backend
 
-- `docker-compose.yml` migrado para PostgreSQL + pgAdmin.
-- `mysql-local` substituido por `postgres-local`.
-- Novas portas definidas:
+Resumo:
+
+- estrutura inicial do backend criada;
+- schema Prisma definido;
+- migrations iniciais montadas;
+- seed com usuario e leads de exemplo;
+- configuracao base de ambiente e erros padronizados.
+
+Auditoria:
+
+- autenticacao com JWT em cookie httpOnly;
+- CORS, cookie-parser, helmet e rate limit aplicados;
+- Prisma singleton e validacao de env preparados;
+- seed com `admin@teste.com / Admin@123`.
+
+## 4. Regra de negocio principal
+
+Resumo:
+
+- CRUD de leads com ownership por usuario;
+- interacoes por lead;
+- dashboard com metricas e funil.
+
+Auditoria:
+
+- auth com login, registro, logout e `me`;
+- leads com filtros, busca, paginação e status;
+- historico de interacoes por lead;
+- dashboard com agregacoes de negocio.
+
+## 5. Testes backend e E2E
+
+Resumo:
+
+- suite backend criada com Jest + Supertest;
+- suite E2E criada com Playwright;
+- cobertura dos fluxos criticos do produto.
+
+Auditoria:
+
+- testes backend usam banco real de teste via Prisma;
+- Playwright cobre auth, dashboard, leads e Kanban;
+- o ambiente de teste exige banco isolado ativo.
+
+## 6. Frontend e experiencia de usuario
+
+Resumo:
+
+- layout privado, login e registro;
+- dashboard visual;
+- listagem e detalhe de leads;
+- Kanban responsivo;
+- interacoes e filtros;
+- estados de loading, empty e error.
+
+Auditoria:
+
+- Axios com `withCredentials`;
+- Zustand para auth;
+- validação com react-hook-form + zod;
+- responsividade ajustada para desktop e mobile.
+
+## 7. Docker local inicial
+
+Resumo:
+
+- stack local montada com Traefik + MySQL + phpMyAdmin + backend + frontend;
+- compose isolado para banco local;
+- portas e variaveis documentadas.
+
+Auditoria:
+
+- `mysql-local` foi usado como ambiente de banco isolado;
+- a stack principal era voltada ao desenvolvimento local;
+- o deploy seguia o modelo Railway + Vercel.
+
+## 8. Branch de migracao
+
+Resumo:
+
+- criada a branch `chore/postgresql-migration`;
+- o trabalho passou a acontecer de forma exclusiva nessa branch;
+- a `main` ficou como referencia estavel.
+
+Auditoria:
+
+- o plano foi reorganizado para migracao completa;
+- `HISTORY.md` passou a ser artefato obrigatorio;
+- o executor passou a exigir validacao ao fim de cada etapa.
+
+## 9. Upgrade de runtime
+
+Resumo:
+
+- projeto atualizado para Node 24 LTS + npm 11;
+- Dockerfiles migrados para `node:24-alpine`;
+- `engines` adicionados aos manifests;
+- `.nvmrc` criado.
+
+Auditoria:
+
+- frontend e backend passaram a usar baseline moderna e alinhada;
+- a stack ficou consistente com o plano final.
+
+## 10. Migracao para PostgreSQL
+
+Resumo:
+
+- Docker principal trocado para PostgreSQL + pgAdmin;
+- banco isolado renomeado para `postgres-local`;
+- Prisma trocado para `provider = "postgresql"`;
+- migrations e envs ajustados;
+- README e docs de deploy reescritos.
+
+Auditoria:
+
+- portas locais reorganizadas:
   - stack principal: `5433`
-  - stack isolada: `5434`
-- Arquivos de exemplo de ambiente recriados para refletir a nova stack.
+  - banco isolado: `5434`
+- o MySQL passou a ser apenas legado historico;
+- `phpMyAdmin` foi substituido por `pgAdmin`;
+- o backend passou a usar `postgresql://`.
 
-#### Etapa 3 - Prisma, migration inicial e seed
+## 11. Feedback visual com React-Toastify
 
-- Prisma trocado para `provider = "postgresql"`.
-- Migration inicial reescrita para PostgreSQL.
-- `DATABASE_URL` do backend e do Dockerfile alinhadas com `postgresql://`.
-- Seed preservado com o usuario `admin@teste.com / Admin@123`.
+Resumo:
 
-#### Etapa 4 - Testes backend em PostgreSQL
+- `react-toastify` adicionado ao frontend;
+- container global registrado no layout;
+- toasts aplicados nos fluxos principais;
+- logout passou a mostrar confirmacao simples na tela de login apos o redirecionamento.
 
-- Ambiente de teste do backend ajustado para `localhost:5434`.
-- Criado `apps/backend/.env.test.example`.
-- Validacao completa da suite ficou dependente de banco PostgreSQL ativo.
+Auditoria:
 
-#### Etapa 5 - Feedback visual com React-Toastify
+- login
+- registro
+- criar lead
+- editar lead
+- excluir lead
+- registrar interacao
+- excluir interacao
+- mover lead no dashboard
+- logout intencional identificado durante o redirecionamento;
+- confirmacao `Sessao encerrada com sucesso.` exibida em `/login?loggedOut=1`;
+- redirecionamentos automaticos por `401` preservam a confirmacao de logout.
 
-- `react-toastify` adicionado ao frontend.
-- `ToastContainer` global registrado no layout raiz.
-- Feedback visual aplicado em:
-  - login
-  - cadastro
-  - logout
-  - criar lead
-  - editar lead
-  - excluir lead
-  - registrar e excluir interacao
-  - mover lead no dashboard
+## 12. E2E preparado e pendencia atual
 
-#### Etapa 6 - E2E alinhado ao PostgreSQL e aos toasts
+Resumo:
 
-- Specs Playwright atualizadas para validar mensagens visuais de sucesso e erro.
-- Listagem da suite E2E confirmada com 27 testes distribuidos em Chromium, Firefox e mobile.
+- specs Playwright cobrem os fluxos principais;
+- docs de IA criadas;
+- prompt mestre e executor atualizados;
+- README principal reescrito.
 
-#### Validacoes executadas nesta branch
+Auditoria:
+
+- suite E2E listada com 27 testes;
+- fluxos de cadastro, login invalido, dashboard, leads, interacoes e Kanban passam;
+- o teste de logout ainda espera o comportamento antigo de toast e URL `/login`;
+- a Etapa 6 deve alinhar `e2e/auth.spec.ts` ao feedback atual em `/login?loggedOut=1`;
+- docs auxiliares passaram a refletir a arquitetura real;
+- a base de contexto ficou pronta para outra conta do Codex.
+
+## 13. Correção de dependência transitiva no frontend
+
+Resumo:
+
+- `npm audit` apontou vulnerabilidade moderada em `postcss` via `next`;
+- foi tentado override conservador;
+- a solução final foi reinstalação limpa do frontend;
+- o `next` subiu para `16.2.9`;
+- o `npm audit` do frontend zerou.
+
+Auditoria:
+
+- `postcss` transitivo passou a ficar em `8.5.15`;
+- o build do frontend permaneceu verde;
+- a correção foi feita sem downgrades agressivos.
+
+## 14. Validacoes executadas nesta branch
 
 - `npm.cmd run build` no backend: ok
 - `npm.cmd run build` no frontend: ok
 - `npx.cmd prisma validate`: ok
 - `npx.cmd prisma generate`: ok
+- migrations aplicadas no PostgreSQL principal: ok
+- migrations aplicadas no PostgreSQL de teste: ok
+- seed no PostgreSQL principal: ok
+- testes backend: 19 de 19 passaram
 - `docker compose config`: ok
+- `docker compose up -d --build`: ok
+- stack principal com PostgreSQL, pgAdmin, backend, frontend e Traefik: ok
+- `GET /health`: HTTP 200
+- `GET /api/v1/health`: HTTP 200
+- smoke de login, logout e confirmacao visual: ok
 - `npm.cmd run test:e2e:list`: ok
+- E2E completo: demais fluxos passam; logout aguarda alinhamento da Etapa 6
+- `npm.cmd audit` no frontend: ok
 
-#### Bloqueios encontrados
+## 15. Incidentes e bloqueios
 
-- Docker Desktop/daemon indisponivel na maquina no momento da validacao.
-- Suite backend falhou por indisponibilidade do banco de teste em `localhost:5434`.
-- Validacao real de migrations, seed e compose em runtime depende de subir o Docker primeiro.
+Incidentes resolvidos:
 
-#### Proximas etapas desta branch
+- Docker Desktop/daemon esteve indisponivel no inicio da validacao;
+- `postgres-local` nao subiu enquanto o daemon estava inativo;
+- testes backend falharam enquanto o banco de teste em `localhost:5434` nao existia;
+- pgAdmin reiniciava porque `admin@mini-crm.local` nao era aceito como email valido;
+- o email padrao do pgAdmin foi corrigido para `admin@example.com`;
+- containers orfaos de MySQL e phpMyAdmin foram removidos da stack principal;
+- o feedback de logout era atropelado pelos redirecionamentos automaticos de seguranca;
+- o logout intencional passou a preservar o destino `/login?loggedOut=1`.
 
-- Validar migrations e seed com PostgreSQL real ativo.
-- Executar a suite backend com o banco de teste em pe.
-- Rodar a stack Docker completa.
-- Executar os E2E completos com frontend, backend e banco ativos.
-- Revisar o deploy PostgreSQL em Railway/Vercel e concluir o fechamento da branch.
+Bloqueio atual:
+
+- nenhuma falha de infraestrutura local ativa;
+- a Etapa 6 precisa alinhar o teste E2E de logout ao comportamento final.
+
+## 16. Commit e push
+
+- commit principal da migracao:
+  - `987f500 chore(postgresql): consolidar migracao e feedback visual`
+- push realizado na branch `chore/postgresql-migration`
+
+## 17. Estado atual
+
+Resumo:
+
+- o projeto esta documentado e codificado para PostgreSQL;
+- o frontend esta com build e audit verdes;
+- o backend compila e o Prisma valida;
+- PostgreSQL isolado e stack principal estao ativos;
+- migrations, seed, testes backend e rotas de saude foram validados;
+- a Etapa 5 de feedback visual esta funcionalmente concluida.
+
+Auditoria:
+
+- stack principal local esta saudavel;
+- banco PostgreSQL principal e banco de teste estao disponiveis;
+- logout mostra confirmacao visivel na tela de login;
+- mudancas atuais ainda nao foram commitadas;
+- Etapa 6, deploy final e fechamento da branch permanecem pendentes.
+
+## 18. Proximos passos
+
+1. revisar manualmente o feedback de logout em desktop e mobile
+2. realizar o commit de fechamento da Etapa 5
+3. iniciar a Etapa 6 e alinhar `e2e/auth.spec.ts`
+4. executar a suite E2E completa
+5. revisar Railway/Vercel com PostgreSQL
+6. concluir documentacao final e busca de residuos ativos do banco legado
+7. preparar o merge final para `main`
+
+## 19. Regra final
+
+- PostgreSQL e o banco oficial.
+- MySQL pode aparecer apenas como legado historico.
+- O fluxo de trabalho continua por etapas curtas, com validacao, registro e aprovacao.

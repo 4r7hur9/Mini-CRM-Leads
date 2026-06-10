@@ -1,6 +1,7 @@
 "use client";
 
 import axios, { AxiosError } from "axios";
+import { getLoginRedirectPath } from "@/features/auth/utils/logoutRedirect";
 import { API_BASE_URL } from "@/lib/constants";
 import type { ApiErrorResponse } from "@/types/api";
 
@@ -36,7 +37,7 @@ api.interceptors.response.use(
       !window.location.pathname.startsWith("/login") &&
       !window.location.pathname.startsWith("/register")
     ) {
-      window.location.assign("/login");
+      window.location.assign(getLoginRedirectPath());
     }
 
     return Promise.reject(error);

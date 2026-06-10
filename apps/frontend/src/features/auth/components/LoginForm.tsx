@@ -3,17 +3,23 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import { notifyError, notifySuccess } from "@/lib/toast";
 import { useAuthStore } from "../store/authStore";
+import { clearLogoutRedirect } from "../utils/logoutRedirect";
 import { loginSchema, type LoginFormData } from "../validators";
 
 export function LoginForm() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const shouldShowSeedHint = process.env.NODE_ENV !== "production";
+
+  useEffect(() => {
+    clearLogoutRedirect();
+  }, []);
 
   const {
     formState: { errors, isSubmitting },

@@ -49,7 +49,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@mini-crm.local}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123456}
       PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
       PGADMIN_CONFIG_LOGIN_BANNER: "'Mini CRM de Leads'"
