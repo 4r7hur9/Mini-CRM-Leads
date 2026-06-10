@@ -184,11 +184,13 @@ Auditoria:
 - confirmacao `Sessao encerrada com sucesso.` exibida em `/login?loggedOut=1`;
 - redirecionamentos automaticos por `401` preservam a confirmacao de logout.
 
-## 12. E2E preparado e pendencia atual
+## 12. E2E alinhado ao comportamento final
 
 Resumo:
 
 - specs Playwright cobrem os fluxos principais;
+- teste de logout alinhado ao feedback atual em `/login?loggedOut=1`;
+- suite completa validada com PostgreSQL ativo;
 - docs de IA criadas;
 - prompt mestre e executor atualizados;
 - README principal reescrito.
@@ -196,9 +198,10 @@ Resumo:
 Auditoria:
 
 - suite E2E listada com 27 testes;
-- fluxos de cadastro, login invalido, dashboard, leads, interacoes e Kanban passam;
-- o teste de logout ainda espera o comportamento antigo de toast e URL `/login`;
-- a Etapa 6 deve alinhar `e2e/auth.spec.ts` ao feedback atual em `/login?loggedOut=1`;
+- spec de autenticacao: 9 de 9 testes passaram;
+- suite E2E completa: 27 de 27 testes passaram;
+- Chromium, Firefox e mobile Chrome validados;
+- fluxos de cadastro, login invalido, login, logout, dashboard, leads, interacoes e Kanban passam;
 - docs auxiliares passaram a refletir a arquitetura real;
 - a base de contexto ficou pronta para outra conta do Codex.
 
@@ -235,7 +238,8 @@ Auditoria:
 - `GET /api/v1/health`: HTTP 200
 - smoke de login, logout e confirmacao visual: ok
 - `npm.cmd run test:e2e:list`: ok
-- E2E completo: demais fluxos passam; logout aguarda alinhamento da Etapa 6
+- `npx.cmd playwright test e2e/auth.spec.ts`: 9 de 9 passaram
+- `npm.cmd run test:e2e`: 27 de 27 passaram
 - `npm.cmd audit` no frontend: ok
 
 ## 15. Incidentes e bloqueios
@@ -254,7 +258,8 @@ Incidentes resolvidos:
 Bloqueio atual:
 
 - nenhuma falha de infraestrutura local ativa;
-- a Etapa 6 precisa alinhar o teste E2E de logout ao comportamento final.
+- nenhuma falha E2E ativa;
+- validacao de deploy PostgreSQL no Railway/Vercel permanece como proxima etapa.
 
 ## 16. Commit e push
 
@@ -271,25 +276,25 @@ Resumo:
 - o backend compila e o Prisma valida;
 - PostgreSQL isolado e stack principal estao ativos;
 - migrations, seed, testes backend e rotas de saude foram validados;
-- a Etapa 5 de feedback visual esta funcionalmente concluida.
+- a Etapa 5 de feedback visual esta concluida;
+- a Etapa 6 de E2E esta concluida.
 
 Auditoria:
 
 - stack principal local esta saudavel;
 - banco PostgreSQL principal e banco de teste estao disponiveis;
 - logout mostra confirmacao visivel na tela de login;
-- mudancas atuais ainda nao foram commitadas;
-- Etapa 6, deploy final e fechamento da branch permanecem pendentes.
+- suite E2E completa esta verde;
+- alteracoes da Etapa 6 ainda nao foram commitadas;
+- deploy final, documentacao final e fechamento da branch permanecem pendentes.
 
 ## 18. Proximos passos
 
-1. revisar manualmente o feedback de logout em desktop e mobile
-2. realizar o commit de fechamento da Etapa 5
-3. iniciar a Etapa 6 e alinhar `e2e/auth.spec.ts`
-4. executar a suite E2E completa
-5. revisar Railway/Vercel com PostgreSQL
-6. concluir documentacao final e busca de residuos ativos do banco legado
-7. preparar o merge final para `main`
+1. realizar o commit de fechamento da Etapa 6
+2. iniciar a Etapa 7 e revisar Railway/Vercel com PostgreSQL
+3. validar smoke test de producao
+4. concluir documentacao final e busca de residuos ativos do banco legado
+5. preparar o merge final para `main`
 
 ## 19. Regra final
 

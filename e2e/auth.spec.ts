@@ -62,7 +62,7 @@ test.describe("Auth", () => {
     ]);
 
     await expect(page.getByText("Sessao encerrada com sucesso.")).toBeVisible();
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login\?loggedOut=1$/);
     await expect(page.getByRole("heading", { name: "Entrar no CRM" })).toBeVisible();
   });
 });
