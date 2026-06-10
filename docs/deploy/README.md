@@ -12,6 +12,8 @@ Este projeto foi preparado para publicar:
 - backend: `apps/backend`
 - API publica esperada: `https://seu-backend.railway.app/api/v1`
 - frontend publico esperado: `https://mini-crm-leads.vercel.app`
+- banco no Railway: PostgreSQL
+- admin local: `pgAdmin`
 
 ## Ordem recomendada
 
@@ -42,6 +44,13 @@ COOKIE_SECURE=true
 COOKIE_SAME_SITE=none
 ```
 
+Regras praticas:
+
+- `DATABASE_URL` precisa ser uma string MySQL? nao, aqui e PostgreSQL e precisa vir do proprio Railway;
+- `CORS_ORIGIN` pode receber mais de uma origem separada por virgula, mas a origin publica do frontend precisa estar incluida;
+- `COOKIE_SAME_SITE=none` exige `COOKIE_SECURE=true`;
+- `JWT_SECRET` deve ter no minimo 32 caracteres.
+
 ### Variaveis opcionais
 
 ```env
@@ -64,6 +73,8 @@ Importante:
 
 - o nome `Postgres` deve bater com o nome real do servico no seu painel;
 - confirme no modal de conexao do Railway qual e a variavel exata exibida para o seu banco.
+- se o painel mostrar outro nome de servico, use exatamente aquele nome no placeholder;
+- se o `DATABASE_URL` vier vazio, o Prisma falha no boot e a API nao sobe.
 
 ### Prisma no build e no runtime
 
@@ -88,6 +99,7 @@ Observacoes:
 - o navegador usa `/api/v1` no mesmo dominio do frontend;
 - `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend;
 - se a URL do backend mudar, o frontend precisa de novo deploy.
+- depois de alterar `NEXT_PUBLIC_API_URL`, redeploy do frontend e obrigatorio.
 
 ## Cookies, CORS e sessao
 
@@ -137,6 +149,13 @@ Depois que as URLs publicas estiverem prontas:
 8. validar dashboard;
 9. fazer logout;
 10. tentar abrir `/dashboard` sem sessao e confirmar redirecionamento.
+
+## Erros comuns e como interpretar
+
+- `Environment variable not found: DATABASE_URL`: o backend nao recebeu a variavel do banco no Railway.
+- `Access-Control-Allow-Origin` com multiplos valores: a configuracao de `CORS_ORIGIN` foi montada com separadores errados ou com origin ausente.
+- `401` no login/cookie nao persiste: confira `COOKIE_SECURE`, `COOKIE_SAME_SITE` e se frontend e backend estao usando HTTPS em producao.
+- frontend apontando para localhost em producao: `NEXT_PUBLIC_API_URL` nao foi atualizado antes do deploy no Vercel.
 
 ## Limites do que a IA nao conclui sozinha
 
