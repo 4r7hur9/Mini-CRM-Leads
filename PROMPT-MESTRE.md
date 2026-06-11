@@ -2250,7 +2250,7 @@ Adicionar os seguintes scripts:
 
 ## [SEÇÃO 15] DOCUMENTAÇÃO /docs/ai
 
-Criar e preencher os 4 arquivos durante o desenvolvimento:
+Criar os 4 arquivos como templates de preenchimento manual durante o desenvolvimento:
 
 ### /docs/ai/README.md
 
@@ -2259,12 +2259,14 @@ Criar e preencher os 4 arquivos durante o desenvolvimento:
 - Em quais partes foi escrito/decidido manualmente
 - Limitações ou erros apresentados pela IA
 - Como o código gerado foi revisado
+- Se a resposta final ainda nao estiver pronta, mantenha o arquivo em formato de questionario para preenchimento manual
 
 ### /docs/ai/prompts.md
 
 - Registrar todos os prompts principais utilizados
 - Formato: nome da tarefa, ferramenta usada, prompt, resultado, o que aproveitou e o que alterou
 - **Incluir este PROMPT-MESTRE como Prompt 1**
+- Se o conteudo ainda estiver em aberto, deixar apenas perguntas e campos de preenchimento
 
 ### /docs/ai/decisions.md
 
@@ -2328,6 +2330,8 @@ O `README.md` na raiz do projeto deve conter:
 12. **Funcionalidades entregues** — lista do que foi implementado
 13. **Funcionalidades pendentes** — lista do que não foi feito (honesto)
 14. **Decisões técnicas principais** — resumo das escolhas
+15. **Mapa de arquivos** — link para `docs/file-index.md`
+16. **Documentação de IA** — links para `docs/ai/README.md`, `docs/ai/prompts.md`, `docs/ai/decisions.md` e `docs/ai/review.md`
 
 ---
 

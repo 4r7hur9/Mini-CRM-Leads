@@ -347,7 +347,8 @@ Commits sugeridos:
 Objetivo:
 
 - concluir `HISTORY.md`;
-- atualizar `README.md`, `docs/deploy/README.md`, arquivos `.env` de exemplo e prompts;
+- atualizar `README.md`, `docs/deploy/README.md`, `docs/file-index.md`, `docs/ai/*`, arquivos `.env` de exemplo e prompts;
+- alinhar o arquivo externo de geracao de documentacao com o escopo do projeto;
 - remover referencias ativas ao banco legado do codigo, docs e processo.
 
 Regra:
@@ -363,7 +364,8 @@ Commits sugeridos:
 
 Objetivo:
 
-- validar build, testes, E2E, Docker, deploy e docs;
+- validar build, testes, E2E, Docker, deploy, docs e variaveis por contexto;
+- revisar a clareza das variaveis e da documentacao criada;
 - atualizar branch com `origin/main` se necessario;
 - preparar merge final sem squash.
 

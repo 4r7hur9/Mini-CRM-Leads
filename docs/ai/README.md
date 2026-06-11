@@ -1,13 +1,11 @@
-# Uso de IA
+# Documentacao de IA
 
-Esta pasta documenta como a IA foi usada no Mini CRM de Leads.
+## Quais ferramentas de IA foram usadas?
 
-Arquivos:
+## Em quais partes do projeto a IA ajudou?
 
-- `prompts.md`: prompts oficiais e operacionais
-- `decisions.md`: decisoes tecnicas relevantes
-- `review.md`: revisoes, riscos e ajustes feitos durante a execucao
+## Em quais partes voce decidiu manualmente?
 
-Regra:
+## Quais limitacoes ou erros a IA apresentou?
 
-- manter este material honesto, objetivo e alinhado ao estado real do repositorio.
+## Como voce revisou o codigo ou texto gerado?

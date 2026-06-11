@@ -1,16 +1,25 @@
 # Prompts utilizados
 
-## Prompt mestre
+## Prompt 1 - Estrutura inicial do backend
 
-- `PROMPT-MESTRE.md`
+- Ferramenta usada?
+- Prompt usado?
+- Resultado?
+- O que aproveitei?
+- O que alterei?
 
-## Prompt executor
+## Prompt 2 - Fluxo de autenticacao
 
-- `PROMPT-EXECUTOR.md`
+- Ferramenta usada?
+- Prompt usado?
+- Resultado?
+- O que aproveitei?
+- O que alterei?
 
-## Objetivo operacional
+## Prompt 3 - Docker, deploy e variaveis
 
-- executar o projeto por etapas pequenas;
-- validar tecnicamente cada bloco;
-- registrar a cronologia no `HISTORY.md`;
-- manter rastreabilidade de decisoes e correcoes.
+- Ferramenta usada?
+- Prompt usado?
+- Resultado?
+- O que aproveitei?
+- O que alterei?

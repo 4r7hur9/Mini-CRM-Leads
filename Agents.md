@@ -1,10 +1,10 @@
-# Instruções do Projeto para o Codex
+﻿# InstruÃ§Ãµes do Projeto para o Codex
 
 ## Objetivo
 
-Este projeto é um CRM web em desenvolvimento. Antes de alterar código, entenda a estrutura, preserve decisões já tomadas e avance por etapas pequenas e rastreáveis.
+Este projeto Ã© um CRM web em desenvolvimento. Antes de alterar cÃ³digo, entenda a estrutura, preserve decisÃµes jÃ¡ tomadas e avance por etapas pequenas e rastreÃ¡veis.
 
-Leia sempre também:
+Leia sempre tambÃ©m:
 
 - [CONTEXTO_MINICRMDELEADS.md](./CONTEXTO_MINICRMDELEADS.md)
 - [HISTORY.md](./HISTORY.md)
@@ -13,14 +13,14 @@ Leia sempre também:
 
 ## Regras
 
-- Não reescrever o projeto inteiro sem necessidade.
-- Fazer mudanças pequenas, seguras e rastreáveis.
+- NÃ£o reescrever o projeto inteiro sem necessidade.
+- Fazer mudanÃ§as pequenas, seguras e rastreÃ¡veis.
 - Sempre explicar quais arquivos foram alterados.
-- Sempre verificar TypeScript, Prisma, Docker, migrations e variáveis de ambiente.
-- Não expor senhas reais em respostas.
+- Sempre verificar TypeScript, Prisma, Docker, migrations e variÃ¡veis de ambiente.
+- NÃ£o expor senhas reais em respostas.
 - Antes de sugerir deploy, validar build, banco e migrations.
-- Antes de avançar, registrar o que mudou no `HISTORY.md`.
-- Trabalhar em uma branch dedicada de migração até concluir tudo.
+- Antes de avanÃ§ar, registrar o que mudou no `HISTORY.md`.
+- Trabalhar em uma branch dedicada de migraÃ§Ã£o atÃ© concluir tudo.
 
 ## Prioridades de trabalho
 
@@ -28,9 +28,9 @@ Leia sempre também:
 2. Fazer uma etapa por vez.
 3. Validar tecnicamente o que foi alterado.
 4. Corrigir falhas antes de seguir.
-5. Atualizar documentação e `HISTORY.md`.
-6. Sugerir commit semântico.
-7. Pedir aprovação antes de avançar.
+5. Atualizar documentaÃ§Ã£o e `HISTORY.md`.
+6. Sugerir commit semÃ¢ntico.
+7. Pedir aprovaÃ§Ã£o antes de avanÃ§ar.
 
 ## Stack atual
 
@@ -43,10 +43,10 @@ Leia sempre também:
 - Testes E2E: Playwright
 - Feedback visual: react-toastify
 - Estado frontend: Zustand
-- Formulários: react-hook-form + zod
+- FormulÃ¡rios: react-hook-form + zod
 - HTTP client frontend: Axios com `withCredentials`
 
-## Fluxo operacional obrigatório
+## Fluxo operacional obrigatÃ³rio
 
 ### Antes de editar
 
@@ -56,22 +56,22 @@ Leia sempre também:
 - localizar arquivos afetados
 - evitar mexer em partes fora do escopo
 
-### Durante a execução
+### Durante a execuÃ§Ã£o
 
-- manter as alterações pequenas
-- não quebrar o que já funciona
-- não misturar várias etapas sem necessidade
-- quando houver dependência de ambiente, deixar isso explícito
+- manter as alteraÃ§Ãµes pequenas
+- nÃ£o quebrar o que jÃ¡ funciona
+- nÃ£o misturar vÃ¡rias etapas sem necessidade
+- quando houver dependÃªncia de ambiente, deixar isso explÃ­cito
 
 ### Depois de editar
 
-- rodar as validações possíveis
+- rodar as validaÃ§Ãµes possÃ­veis
 - registrar no `HISTORY.md`
-- listar ações manuais
+- listar aÃ§Ãµes manuais
 - sugerir commit
-- informar o que ainda está bloqueado por ambiente
+- informar o que ainda estÃ¡ bloqueado por ambiente
 
-## Comandos úteis
+## Comandos Ãºteis
 
 - `docker compose up -d --build`
 - `docker compose config`
@@ -87,37 +87,37 @@ Leia sempre também:
 - `npx prisma migrate deploy`
 - `npm run db:seed`
 
-## Contexto técnico que não pode ser esquecido
+## Contexto tÃ©cnico que nÃ£o pode ser esquecido
 
-- PostgreSQL é o banco oficial agora.
-- MySQL só pode aparecer como legado histórico dentro do `HISTORY.md`.
+- PostgreSQL Ã© o banco oficial agora.
+- Banco legado só pode aparecer dentro do `HISTORY.md`.
 - `pgAdmin` substitui `phpMyAdmin`.
-- O runtime final de referência é Node 24 LTS + npm 11.
+- O runtime final de referÃªncia Ã© Node 24 LTS + npm 11.
 - O frontend usa `react-toastify` para feedback visual.
 - O backend usa cookie httpOnly, CORS com credentials e rate limit.
 - O frontend continua com rewrite/proxy em `/api/v1`.
 - O E2E envia `x-e2e-test-key` quando configurado.
 - Os testes backend usam banco real de teste via Prisma.
-- Docker local principal e banco isolado têm portas diferentes para não conflitar.
-- A branch de migração é `chore/postgresql-migration`.
+- Docker local principal e banco isolado tÃªm portas diferentes para nÃ£o conflitar.
+- A branch de migraÃ§Ã£o Ã© `chore/postgresql-migration`.
 
-## Último plano pendente
+## Ãšltimo plano pendente
 
 ### Estado atual
 
-O projeto já passou por:
+O projeto jÃ¡ passou por:
 
-- migração estrutural para PostgreSQL
-- atualização de runtime
-- atualização de Dockerfiles
-- atualização de prompts e documentação
-- adição de `react-toastify`
+- migraÃ§Ã£o estrutural para PostgreSQL
+- atualizaÃ§Ã£o de runtime
+- atualizaÃ§Ã£o de Dockerfiles
+- atualizaÃ§Ã£o de prompts e documentaÃ§Ã£o
+- adiÃ§Ã£o de `react-toastify`
 - ajuste inicial de E2E
-- correção da vulnerabilidade transitiva de `postcss` no frontend
+- correÃ§Ã£o da vulnerabilidade transitiva de `postcss` no frontend
 
 ### O que ainda falta validar
 
-1. subir o Docker Desktop da máquina
+1. subir o Docker Desktop da mÃ¡quina
 2. executar `cd postgres-local && docker compose up -d`
 3. criar o banco de teste `mini_crm_leads_test`
 4. rodar migrations no banco principal e no banco de teste
@@ -130,28 +130,28 @@ O projeto já passou por:
 11. revisar Railway/Vercel com PostgreSQL
 12. fechar a branch com merge para `main` quando tudo estiver verde
 
-### Próximas entregas esperadas
+### PrÃ³ximas entregas esperadas
 
 - backend e banco validados localmente
 - frontend validado com stack completa
 - E2E verde
 - deploy revisado em Railway/Vercel
-- fechamento da branch de migração
+- fechamento da branch de migraÃ§Ã£o
 
-## Ações manuais que o usuário precisa fazer
+## AÃ§Ãµes manuais que o usuÃ¡rio precisa fazer
 
 - iniciar Docker Desktop
 - verificar portas e volumes se houver conflito
-- conferir credenciais e variáveis externas no Railway/Vercel
-- validar o smoke test de produção
+- conferir credenciais e variÃ¡veis externas no Railway/Vercel
+- validar o smoke test de produÃ§Ã£o
 - aprovar o merge final para `main`
 
 ## O que sempre reportar ao final de cada etapa
 
 - arquivos alterados
 - comandos executados
-- resultado das validações
+- resultado das validaÃ§Ãµes
 - erros restantes
-- ações manuais necessárias
+- aÃ§Ãµes manuais necessÃ¡rias
 - commit sugerido
-- pergunta: `Posso avançar para a próxima etapa?`
+- pergunta: `Posso avanÃ§ar para a prÃ³xima etapa?`

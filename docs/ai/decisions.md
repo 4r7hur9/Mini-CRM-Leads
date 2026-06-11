@@ -1,29 +1,17 @@
 # Decisoes tecnicas
 
-## Runtime
+## Por que foi escolhido JWT?
 
-- baseline final em `Node 24 LTS + npm 11`
+## Como o backend foi organizado em camadas?
 
-## Banco
+## Como os dados por usuario foram protegidos?
 
-- PostgreSQL como banco oficial
-- Prisma como ORM
-- pgAdmin para administracao local
+## Como o Prisma foi estruturado?
 
-## Frontend
+## Como as chamadas de API foram organizadas no frontend?
 
-- Next.js App Router
-- Zustand para auth
-- Axios com `withCredentials`
-- `react-toastify` para feedback visual de auth e CRUD principal
+## Como os erros foram tratados?
 
-## Infra local
+## Como os dados foram validados?
 
-- Traefik como proxy reverso
-- `docker-compose.yml` para stack completa
-- `postgres-local/docker-compose.yml` para banco isolado
-
-## Deploy
-
-- backend no Railway
-- frontend no Vercel
+## Quais decisoes devem ser preservadas no futuro?

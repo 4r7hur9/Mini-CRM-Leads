@@ -46,7 +46,7 @@ COOKIE_SAME_SITE=none
 
 Regras praticas:
 
-- `DATABASE_URL` precisa ser uma string MySQL? nao, aqui e PostgreSQL e precisa vir do proprio Railway;
+- `DATABASE_URL` precisa ser uma string PostgreSQL valida e deve vir do proprio Railway;
 - `CORS_ORIGIN` pode receber mais de uma origem separada por virgula, mas a origin publica do frontend precisa estar incluida;
 - `COOKIE_SAME_SITE=none` exige `COOKIE_SECURE=true`;
 - `JWT_SECRET` deve ter no minimo 32 caracteres.
@@ -98,6 +98,7 @@ Observacoes:
 
 - o navegador usa `/api/v1` no mesmo dominio do frontend;
 - `NEXT_PUBLIC_API_URL` e lida em build time pelo Next.js para fazer rewrite/proxy ate o backend;
+- a URL precisa ser absoluta e incluir `https://`;
 - se a URL do backend mudar, o frontend precisa de novo deploy.
 - depois de alterar `NEXT_PUBLIC_API_URL`, redeploy do frontend e obrigatorio.
 

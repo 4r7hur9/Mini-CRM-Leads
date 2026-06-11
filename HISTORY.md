@@ -353,3 +353,13 @@ Validacao final:
 - o retorno 401 confirma que o proxy da Vercel alcancou a rota de autenticacao do Express;
 - build com `NEXT_PUBLIC_API_URL` sem protocolo falhou intencionalmente com uma mensagem explicita;
 - build do frontend com configuracao valida permaneceu verde.
+
+## 21. Pacote de documentacao auxiliar
+
+Entrega de documentacao alinhada ao fluxo final do projeto:
+
+- `docs/file-index.md` criado como mapa dos arquivos e responsabilidades do repositorio;
+- `docs/ai/README.md`, `docs/ai/prompts.md`, `docs/ai/decisions.md` e `docs/ai/review.md` criados como templates de preenchimento manual sobre uso de IA;
+- `README.md` atualizado para apontar para a documentacao auxiliar;
+- `PROMPT-MESTRE.md` e `PROMPT-EXECUTOR.md` atualizados para refletir o fluxo documental atual;
+- `.env.example` limpo para evitar duplicidade de chaves de exemplo.

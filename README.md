@@ -21,6 +21,8 @@ Mini CRM full-stack para gestao de leads, autenticacao com cookie httpOnly, dash
 - `docker-compose.yml`
 - `postgres-local/docker-compose.yml`
 - `docs/deploy/README.md`
+- `docs/file-index.md`
+- `docs/ai/README.md`
 - `HISTORY.md`
 - `PROMPT-MESTRE.md`
 - `PROMPT-EXECUTOR.md`
@@ -32,6 +34,16 @@ Arquivos de referencia:
 - `.env.example`
 - `apps/backend/.env.example`
 - `apps/frontend/.env.local.example`
+
+### Variaveis por contexto
+
+| Contexto | Arquivo | Observacao |
+| --- | --- | --- |
+| Stack local completa | `.env.example` | Copie para `.env` na raiz antes de subir o Docker. |
+| Backend local | `apps/backend/.env.example` | Use para rodar o backend fora do compose. |
+| Backend de teste | `apps/backend/.env.test.example` | Use para a suite de testes isolada. |
+| Frontend local | `apps/frontend/.env.local.example` | Use no `npm run dev` do Next.js. |
+| Producao Vercel | variavel do projeto | `NEXT_PUBLIC_API_URL` precisa ser URL absoluta com `https://`. |
 
 Se quiser usar a stack completa localmente, copie a raiz:
 
@@ -179,6 +191,7 @@ Resumo:
 - frontend no Vercel com `Root Directory = apps/frontend`
 - backend no Railway com `Root Directory = apps/backend`
 - banco PostgreSQL no Railway
+- `NEXT_PUBLIC_API_URL` em producao deve terminar em `/api/v1` e incluir `https://`
 
 Variaveis mais importantes em producao:
 
@@ -194,6 +207,14 @@ COOKIE_SAME_SITE=none
 Doc detalhada:
 
 - `docs/deploy/README.md`
+
+Documentacao auxiliar:
+
+- `docs/file-index.md`
+- `docs/ai/README.md`
+- `docs/ai/prompts.md`
+- `docs/ai/decisions.md`
+- `docs/ai/review.md`
 
 ## Contexto vivo
 
