@@ -1,3 +1,10 @@
+/**
+ * Teste de integracao.
+ *
+ * Responsavel por integracao dos fluxos de auth.
+ *
+ * Valida o fluxo com app, Prisma e banco de teste reais.
+ */
 import request from "supertest";
 import { app } from "../../src/app";
 

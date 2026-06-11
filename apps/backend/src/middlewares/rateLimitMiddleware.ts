@@ -1,3 +1,10 @@
+/**
+ * Middleware da API.
+ *
+ * Responsavel por aplicar limite geral e bypass de E2E.
+ *
+ * Protege a entrada da API antes de chegar aos controllers.
+ */
 import type { Request } from "express";
 import rateLimit from "express-rate-limit";
 import { env } from "../config/env";

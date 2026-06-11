@@ -1,3 +1,10 @@
+/**
+ * Rotas da API.
+ *
+ * Responsavel por montar `/api/v1`.
+ *
+ * Agrupa os endpoints expostos por app.ts e encaminha para os controllers.
+ */
 import { Router } from "express";
 import { healthCheck } from "../controllers/healthController";
 import { authRoutes } from "./authRoutes";

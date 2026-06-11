@@ -1,3 +1,10 @@
+/**
+ * Controller da API.
+ *
+ * Responsavel por endpoint de saude da API.
+ *
+ * Conecta as rotas ao service correto e padroniza a resposta HTTP.
+ */
 import type { RequestHandler } from "express";
 
 export const healthCheck: RequestHandler = (_req, res) => {

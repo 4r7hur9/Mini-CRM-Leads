@@ -1,3 +1,10 @@
+/**
+ * Rotas da API.
+ *
+ * Responsavel por rotas de interacao aninhadas no lead.
+ *
+ * Agrupa os endpoints expostos por app.ts e encaminha para os controllers.
+ */
 import { Router } from "express";
 import * as interactionController from "../controllers/interactionController";
 import { validate } from "../middlewares/validationMiddleware";

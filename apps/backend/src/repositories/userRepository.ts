@@ -1,3 +1,10 @@
+/**
+ * Repositorio de dados.
+ *
+ * Responsavel por acesso aos usuarios.
+ *
+ * Isola o acesso ao Prisma e ao banco PostgreSQL.
+ */
 import type { User } from "@prisma/client";
 import { prisma } from "../config/database";
 

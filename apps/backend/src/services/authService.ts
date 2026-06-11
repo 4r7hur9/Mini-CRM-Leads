@@ -1,3 +1,10 @@
+/**
+ * Servico de negocio do backend.
+ *
+ * Responsavel por chamadas de auth para a API.
+ *
+ * Faz a ponte entre controllers e repositories, concentrando regras de negocio.
+ */
 import type { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";

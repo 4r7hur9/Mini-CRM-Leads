@@ -1,3 +1,10 @@
+/**
+ * Seed inicial do banco PostgreSQL.
+ *
+ * Responsavel por arquivo relevante do projeto.
+ *
+ * Popula o banco com dados base usados em desenvolvimento e testes.
+ */
 import bcrypt from "bcrypt";
 import { InteractionType, LeadStatus, PrismaClient } from "@prisma/client";
 

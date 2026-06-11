@@ -1,3 +1,10 @@
+/**
+ * Repositorio de dados.
+ *
+ * Responsavel por consultas agregadas do dashboard.
+ *
+ * Isola o acesso ao Prisma e ao banco PostgreSQL.
+ */
 import { LeadStatus } from "@prisma/client";
 import { prisma } from "../config/database";
 

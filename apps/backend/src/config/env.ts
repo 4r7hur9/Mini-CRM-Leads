@@ -1,3 +1,10 @@
+/**
+ * Validacao e normalizacao de ambiente.
+ *
+ * Responsavel por validar e normalizar as variaveis de ambiente.
+ *
+ * Centraliza a validacao das variaveis de ambiente do backend.
+ */
 import "dotenv/config";
 import { z } from "zod";
 

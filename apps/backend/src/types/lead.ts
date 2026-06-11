@@ -1,3 +1,10 @@
+/**
+ * Contratos compartilhados.
+ *
+ * Responsavel por contratos de lead.
+ *
+ * E compartilhado entre controllers, services, repositories e testes.
+ */
 import type { Lead, LeadStatus } from "@prisma/client";
 
 export type LeadNullableFields = {

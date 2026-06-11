@@ -1,3 +1,10 @@
+/**
+ * Repositorio de dados.
+ *
+ * Responsavel por persistencia e filtros de leads.
+ *
+ * Isola o acesso ao Prisma e ao banco PostgreSQL.
+ */
 import type { Lead, Prisma } from "@prisma/client";
 import { prisma } from "../config/database";
 import type { CreateLeadData, ListLeadFilters, UpdateLeadData } from "../types/lead";

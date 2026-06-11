@@ -1,3 +1,10 @@
+/**
+ * Bootstrap HTTP do backend.
+ *
+ * Responsavel por sobe o servidor HTTP e trata shutdown gracioso.
+ *
+ * Inicializa o HTTP server e controla o shutdown gracioso.
+ */
 import { app } from "./app";
 import { prisma } from "./config/database";
 import { env } from "./config/env";

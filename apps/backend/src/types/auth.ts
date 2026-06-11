@@ -1,3 +1,10 @@
+/**
+ * Contratos compartilhados.
+ *
+ * Responsavel por contratos de auth.
+ *
+ * E compartilhado entre controllers, services, repositories e testes.
+ */
 export type AuthenticatedUser = {
   id: string;
   email: string;

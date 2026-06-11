@@ -1,3 +1,10 @@
+/**
+ * Repositorio de dados.
+ *
+ * Responsavel por persistencia de interacoes.
+ *
+ * Isola o acesso ao Prisma e ao banco PostgreSQL.
+ */
 import type { Interaction } from "@prisma/client";
 import { prisma } from "../config/database";
 import type { CreateInteractionData } from "../types/interaction";

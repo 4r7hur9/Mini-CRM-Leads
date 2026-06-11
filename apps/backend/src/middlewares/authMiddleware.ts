@@ -1,3 +1,10 @@
+/**
+ * Middleware da API.
+ *
+ * Responsavel por proteger rotas privadas com cookie httpOnly.
+ *
+ * Protege a entrada da API antes de chegar aos controllers.
+ */
 import type { RequestHandler } from "express";
 import { verifyAuthToken } from "../services/authService";
 import { AUTH_COOKIE_NAME } from "../utils/cookieOptions";

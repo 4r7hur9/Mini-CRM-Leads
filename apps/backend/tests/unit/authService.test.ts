@@ -1,3 +1,10 @@
+/**
+ * Teste unitario.
+ *
+ * Responsavel por unidade do servico de auth.
+ *
+ * Valida a regra de negocio da camada isolada sem dependencias externas.
+ */
 import bcrypt from "bcrypt";
 import * as authService from "../../src/services/authService";
 import { prisma } from "../../src/config/database";

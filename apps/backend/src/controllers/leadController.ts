@@ -1,3 +1,10 @@
+/**
+ * Controller da API.
+ *
+ * Responsavel por CRUD e status dos leads.
+ *
+ * Conecta as rotas ao service correto e padroniza a resposta HTTP.
+ */
 import type { Request } from "express";
 import * as leadService from "../services/leadService";
 import { AppError } from "../utils/AppError";

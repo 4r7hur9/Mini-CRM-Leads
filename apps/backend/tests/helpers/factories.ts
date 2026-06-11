@@ -1,3 +1,10 @@
+/**
+ * Factories e helpers de teste.
+ *
+ * Responsavel por factories e helpers para auth dos testes.
+ *
+ * Cria usuarios, leads e agentes autenticados para as suites de backend.
+ */
 import { LeadStatus } from "@prisma/client";
 import request from "supertest";
 import { app } from "../../src/app";

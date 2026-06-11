@@ -1,3 +1,10 @@
+/**
+ * Montagem da aplicacao Express do backend.
+ *
+ * Responsavel por configurar Express, CORS, middlewares e rotas principais.
+ *
+ * Orquestra middlewares, rotas, CORS, cookies e tratamento de erro.
+ */
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";

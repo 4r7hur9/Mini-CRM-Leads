@@ -1,3 +1,10 @@
+/**
+ * Controller da API.
+ *
+ * Responsavel por register, login, logout e me.
+ *
+ * Conecta as rotas ao service correto e padroniza a resposta HTTP.
+ */
 import { asyncHandler } from "../utils/asyncHandler";
 import * as authService from "../services/authService";
 import { AppError } from "../utils/AppError";

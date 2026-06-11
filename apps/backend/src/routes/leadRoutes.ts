@@ -1,3 +1,10 @@
+/**
+ * Rotas da API.
+ *
+ * Responsavel por rotas de leads e status.
+ *
+ * Agrupa os endpoints expostos por app.ts e encaminha para os controllers.
+ */
 import { Router } from "express";
 import * as leadController from "../controllers/leadController";
 import { authMiddleware } from "../middlewares/authMiddleware";

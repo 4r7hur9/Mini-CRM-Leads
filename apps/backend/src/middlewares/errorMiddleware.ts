@@ -1,3 +1,10 @@
+/**
+ * Middleware da API.
+ *
+ * Responsavel por formatar erros padrao da API.
+ *
+ * Protege a entrada da API antes de chegar aos controllers.
+ */
 import { Prisma } from "@prisma/client";
 import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";

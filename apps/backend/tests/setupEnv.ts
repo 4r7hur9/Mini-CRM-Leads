@@ -1,3 +1,10 @@
+/**
+ * Preparacao do ambiente de testes do backend.
+ *
+ * Responsavel por preparar o ambiente isolado para testes.
+ *
+ * Carrega e isola variaveis usadas pela suite de testes do backend.
+ */
 import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.test", override: false });

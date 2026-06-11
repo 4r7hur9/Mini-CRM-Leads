@@ -1,3 +1,10 @@
+/**
+ * Servico de negocio do backend.
+ *
+ * Responsavel por chamadas do dashboard na API.
+ *
+ * Faz a ponte entre controllers e repositories, concentrando regras de negocio.
+ */
 import type { LeadStatus } from "@prisma/client";
 import * as dashboardRepository from "../repositories/dashboardRepository";
 import type { DashboardSummary } from "../types/dashboard";
