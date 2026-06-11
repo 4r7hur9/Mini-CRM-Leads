@@ -211,10 +211,114 @@ Doc detalhada:
 Documentacao auxiliar:
 
 - `docs/file-index.md`
+- `docs/documentation-audit.md`
 - `docs/ai/README.md`
 - `docs/ai/prompts.md`
 - `docs/ai/decisions.md`
 - `docs/ai/review.md`
+
+## Arquitetura visual
+
+### Visao geral
+
+```mermaid
+flowchart LR
+  U[Usuario] --> V[Vercel / Next.js]
+  V -->|rewrite /api/v1| A[Railway / Express API]
+  A --> P[Prisma Client]
+  P --> D[(PostgreSQL)]
+  A --> C[Cookie httpOnly]
+  C --> V
+```
+
+### Estrutura principal
+
+```mermaid
+graph TD
+  R[Repositorio]
+  R --> FE[apps/frontend]
+  R --> BE[apps/backend]
+  R --> E2E[e2e]
+  R --> DOCS[docs]
+  FE --> FEA[app]
+  FE --> FEC[components]
+  FE --> FEF[features]
+  BE --> BEC[controllers]
+  BE --> BES[services]
+  BE --> BER[repositories]
+  BE --> BEM[middlewares]
+  BE --> BET[tests]
+```
+
+### Autenticacao
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant F as Frontend
+  participant A as API
+  participant S as authService
+  participant D as PostgreSQL
+
+  U->>F: envia login ou cadastro
+  F->>A: POST /api/v1/auth/*
+  A->>S: valida credenciais
+  S->>D: busca ou cria usuario
+  D-->>S: usuario persistido
+  S-->>A: token + dados publicos
+  A-->>F: cookie httpOnly + resposta
+  F-->>U: atualiza sessao
+```
+
+### Leads e Kanban
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant F as Frontend
+  participant A as API
+  participant S as leadService
+  participant D as PostgreSQL
+
+  U->>F: cria, edita ou move lead
+  F->>A: request autenticada
+  A->>S: aplica regra de negocio
+  S->>D: persiste lead ou interacao
+  D-->>S: estado atualizado
+  S-->>A: resposta tratada
+  A-->>F: JSON com dados atualizados
+  F-->>U: atualiza cards, listas e toasts
+```
+
+### Modelo de dados
+
+```mermaid
+erDiagram
+  User ||--o{ Lead : possui
+  Lead ||--o{ Interaction : registra
+
+  User {
+    string id
+    string name
+    string email
+    string passwordHash
+  }
+
+  Lead {
+    string id
+    string userId
+    string name
+    string status
+    string company
+  }
+
+  Interaction {
+    string id
+    string leadId
+    string type
+    string description
+  }
+```
 
 ## Contexto vivo
 

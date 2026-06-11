@@ -225,6 +225,10 @@
 ### docs/deploy
 
 - `docs/deploy/README.md` - guia operacional de deploy em Railway e Vercel.
+
+### docs/documentation-audit
+
+- `docs/documentation-audit.md` - auditoria de cobertura, riscos e observacoes da documentacao tecnica.
 - `docs/ai/prompts.md` - template para registrar prompts importantes.
 - `docs/ai/decisions.md` - template para registrar decisoes tecnicas.
 - `docs/ai/review.md` - template para revisar o uso de IA.

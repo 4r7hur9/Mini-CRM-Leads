@@ -363,3 +363,12 @@ Entrega de documentacao alinhada ao fluxo final do projeto:
 - `README.md` atualizado para apontar para a documentacao auxiliar;
 - `PROMPT-MESTRE.md` e `PROMPT-EXECUTOR.md` atualizados para refletir o fluxo documental atual;
 - `.env.example` limpo para evitar duplicidade de chaves de exemplo.
+
+## 22. Auditoria de documentacao tecnica
+
+- a cobertura dos arquivos TypeScript relevantes foi mapeada para a etapa de TSDoc;
+- `apps/frontend/next-env.d.ts` foi mantido fora do escopo por ser gerado automaticamente;
+- `docs/documentation-audit.md` foi criado para registrar cobertura, riscos e sugestoes futuras;
+- o README passou a incluir diagramas Mermaid baseados na arquitetura real do projeto;
+- 105 arquivos TypeScript relevantes receberam cabecalho TSDoc por categoria de responsabilidade;
+- `git diff --check`, builds, typecheck, testes backend e E2E completo passaram apos a documentacao.
