@@ -319,17 +319,16 @@ Hipotese inicial e endurecimento aplicado:
 
 Causa raiz confirmada:
 
-- o dominio Railway respondia `Application not found` com `x-railway-fallback: true`;
-- essa resposta e gerada pelo edge do Railway antes de alcancar o container;
-- a comparacao com a `main` confirmou que rotas, healthcheck, `PORT`, comando de inicializacao e servidor Express nao regrediram;
-- o dominio publico do Railway precisa ser vinculado novamente ao servico backend ativo e a porta correta.
+- o valor de `NEXT_PUBLIC_API_URL` configurado na Vercel estava sem o protocolo `https://`;
+- sem o protocolo, a variavel nao representava uma URL absoluta valida para o rewrite do Next.js;
+- o destino incorreto resultava em respostas `Application not found` com `x-railway-fallback: true`;
+- rotas, healthcheck, `PORT`, imagem Docker e servidor Express estavam funcionais.
 
-Acao manual necessaria:
+Correcao aplicada:
 
-- no Railway, abrir o servico backend ativo e revisar `Settings > Networking`;
-- gerar ou vincular um dominio publico ao servico e selecionar a porta exposta pelo backend;
-- validar diretamente o novo dominio em `/health` antes de atualizar a Vercel;
-- atualizar `NEXT_PUBLIC_API_URL` na Vercel para o dominio publico funcional e realizar redeploy.
+- `NEXT_PUBLIC_API_URL` foi corrigida na Vercel para incluir `https://`;
+- `apps/frontend/next.config.ts` passou a rejeitar no build URLs sem protocolo;
+- o rewrite continua aceitando o endereco do backend com ou sem o sufixo `/api/v1`.
 
 Validacao posterior:
 
@@ -343,6 +342,14 @@ Validacao posterior:
 Conclusao:
 
 - a imagem do backend esta funcional;
-- o 404 com `x-railway-fallback: true` e `Application not found` nao vem do Express;
-- o dominio usado pela Vercel ainda aponta para um endpoint Railway sem aplicacao vinculada ou para um servico/porta incorreto;
-- a proxima correcao deve ocorrer na configuracao do servico Railway e no valor de `NEXT_PUBLIC_API_URL` da Vercel.
+- o 404 com `x-railway-fallback: true` e `Application not found` nao vinha do Express;
+- a falha estava no valor incompleto de `NEXT_PUBLIC_API_URL` na Vercel;
+- futuras configuracoes sem `http://` ou `https://` agora falham durante o build com uma mensagem explicita.
+
+Validacao final:
+
+- `GET https://mini-crm-leads.vercel.app/api/v1/health` respondeu HTTP 200;
+- `POST https://mini-crm-leads.vercel.app/api/v1/auth/login` com credenciais ficticias respondeu HTTP 401;
+- o retorno 401 confirma que o proxy da Vercel alcancou a rota de autenticacao do Express;
+- build com `NEXT_PUBLIC_API_URL` sem protocolo falhou intencionalmente com uma mensagem explicita;
+- build do frontend com configuracao valida permaneceu verde.
