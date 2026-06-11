@@ -34,6 +34,7 @@ Arquivos de referencia:
 - `.env.example`
 - `apps/backend/.env.example`
 - `apps/frontend/.env.local.example`
+- `docs/environment.md`
 
 ### Variaveis por contexto
 
@@ -212,6 +213,7 @@ Documentacao auxiliar:
 
 - `docs/file-index.md`
 - `docs/documentation-audit.md`
+- `docs/environment.md`
 - `docs/ai/README.md`
 - `docs/ai/prompts.md`
 - `docs/ai/decisions.md`

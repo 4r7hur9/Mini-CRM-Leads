@@ -372,3 +372,11 @@ Entrega de documentacao alinhada ao fluxo final do projeto:
 - o README passou a incluir diagramas Mermaid baseados na arquitetura real do projeto;
 - 105 arquivos TypeScript relevantes receberam cabecalho TSDoc por categoria de responsabilidade;
 - `git diff --check`, builds, typecheck, testes backend e E2E completo passaram apos a documentacao.
+
+## 23. Revisao final de variaveis
+
+- `docs/environment.md` foi criado como guia central das variaveis por contexto;
+- README, deploy docs, contexto e prompts passaram a apontar para o guia central;
+- a relacao entre `E2E_TEST_KEY` na raiz e `RATE_LIMIT_E2E_BYPASS_KEY` no backend foi documentada;
+- os exemplos de segredo do contexto foram alinhados aos arquivos `.env.example`;
+- o merge final para `main` continua dependendo de aprovacao manual.

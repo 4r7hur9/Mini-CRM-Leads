@@ -21,7 +21,7 @@
 
 ## Sugestoes futuras
 
-- centralizar decisoes repetidas sobre auth, cookies e CORS em documentos de referencia menores
+- manter `docs/environment.md` como fonte central das variaveis por contexto
 - registrar no `HISTORY.md` qualquer futura mudanca de fluxo de deploy ou ambiente
 - manter `docs/file-index.md` como mapa vivo sempre que novos arquivos TS forem adicionados
 
@@ -39,3 +39,11 @@
 - `cd apps/backend && npm test`
 - `npm run test:e2e:list`
 - `npm run test:e2e`
+
+## Revisao de variaveis
+
+- `E2E_TEST_KEY` permanece na raiz para a stack Docker local
+- `RATE_LIMIT_E2E_BYPASS_KEY` permanece como variavel interna do backend
+- `docker-compose.yml` faz a ponte entre as duas variaveis no container do backend
+- `NEXT_PUBLIC_API_URL` continua obrigatoriamente absoluta e com protocolo
+- `COOKIE_SAME_SITE=none` continua exigindo `COOKIE_SECURE=true`

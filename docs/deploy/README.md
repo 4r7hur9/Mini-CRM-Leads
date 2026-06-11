@@ -50,6 +50,7 @@ Regras praticas:
 - `CORS_ORIGIN` pode receber mais de uma origem separada por virgula, mas a origin publica do frontend precisa estar incluida;
 - `COOKIE_SAME_SITE=none` exige `COOKIE_SECURE=true`;
 - `JWT_SECRET` deve ter no minimo 32 caracteres.
+- o guia completo das variaveis fica em `docs/environment.md`.
 
 ### Variaveis opcionais
 

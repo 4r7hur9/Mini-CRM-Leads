@@ -347,7 +347,7 @@ Commits sugeridos:
 Objetivo:
 
 - concluir `HISTORY.md`;
-- atualizar `README.md`, `docs/deploy/README.md`, `docs/file-index.md`, `docs/ai/*`, arquivos `.env` de exemplo e prompts;
+- atualizar `README.md`, `docs/deploy/README.md`, `docs/environment.md`, `docs/file-index.md`, `docs/ai/*`, arquivos `.env` de exemplo e prompts;
 - alinhar o arquivo externo de geracao de documentacao com o escopo do projeto;
 - remover referencias ativas ao banco legado do codigo, docs e processo.
 

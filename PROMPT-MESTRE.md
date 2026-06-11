@@ -1793,7 +1793,7 @@ PGADMIN_DEFAULT_PASSWORD=admin123456
 
 # ─── AUTH ─────────────────────────────────────────────────────────
 # Gerar com: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-JWT_SECRET=your-super-secret-key-minimum-32-chars-here
+JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
 
 # ─── CORS ─────────────────────────────────────────────────────────
 # Com Traefik: browser acessa frontend e backend pelo mesmo origin (http://localhost)
@@ -1816,7 +1816,7 @@ DATABASE_URL=postgresql://app:changeme@localhost:5433/mini_crm_leads?schema=publ
 # Docker: usar nome do serviço como host (rede interna Docker)
 # DATABASE_URL=postgresql://app:changeme@postgres:5432/mini_crm_leads?schema=public
 
-JWT_SECRET=your-super-secret-key-minimum-32-chars-here
+JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
 
 # Sem Docker (npm run dev): frontend em :3000, sem Traefik
 CORS_ORIGIN=http://localhost:3000
@@ -2331,7 +2331,8 @@ O `README.md` na raiz do projeto deve conter:
 13. **Funcionalidades pendentes** — lista do que não foi feito (honesto)
 14. **Decisões técnicas principais** — resumo das escolhas
 15. **Mapa de arquivos** — link para `docs/file-index.md`
-16. **Documentação de IA** — links para `docs/ai/README.md`, `docs/ai/prompts.md`, `docs/ai/decisions.md` e `docs/ai/review.md`
+16. **Guia de variáveis** — link para `docs/environment.md`
+17. **Documentação de IA** — links para `docs/ai/README.md`, `docs/ai/prompts.md`, `docs/ai/decisions.md` e `docs/ai/review.md`
 
 ---
 

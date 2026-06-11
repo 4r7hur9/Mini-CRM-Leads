@@ -262,7 +262,7 @@ E2E_TEST_KEY=
 NODE_ENV=development
 PORT=3001
 DATABASE_URL=postgresql://arthur:3326@localhost:5434/mini_crm_leads?schema=public
-JWT_SECRET=desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao
+JWT_SECRET=coloque_uma_chave_longa_com_32_caracteres_ou_mais
 CORS_ORIGIN=http://localhost:3000
 COOKIE_SECURE=false
 COOKIE_SAME_SITE=strict
@@ -270,7 +270,7 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_GENERAL_MAX=300
 RATE_LIMIT_AUTH_MAX=10
 RATE_LIMIT_E2E_BYPASS_ENABLED=false
-RATE_LIMIT_E2E_BYPASS_KEY=
+RATE_LIMIT_E2E_BYPASS_KEY=coloque_um_token_longo_e_aleatorio_so_para_testes
 ```
 
 ### Backend test
@@ -279,7 +279,7 @@ RATE_LIMIT_E2E_BYPASS_KEY=
 NODE_ENV=test
 PORT=3002
 DATABASE_URL=postgresql://arthur:3326@localhost:5434/mini_crm_leads_test?schema=public
-JWT_SECRET=test_jwt_secret_minimum_32_chars_123456789
+JWT_SECRET=coloque_uma_chave_de_teste_longa_com_32_ou_mais_caracteres
 CORS_ORIGIN=http://localhost:3000
 ```
 
@@ -299,6 +299,8 @@ CORS_ORIGIN=https://seu-frontend.vercel.app
 COOKIE_SECURE=true
 COOKIE_SAME_SITE=none
 ```
+
+Guia central das variaveis: `docs/environment.md`.
 
 ## 11. Como subir o projeto localmente
 
@@ -403,7 +405,7 @@ npm run db:seed
 
 - PostgreSQL Ã© o banco oficial agora
 - Banco legado só pode aparecer dentro do `HISTORY.md`
-- `pgAdmin` substitui `phpMyAdmin`
+- `pgAdmin` é o admin local oficial do banco
 - runtime final de referÃªncia: Node 24 LTS + npm 11
 - frontend usa `react-toastify` para feedback visual de sucesso e erro
 - backend usa cookie httpOnly, CORS com credentials e rate limit

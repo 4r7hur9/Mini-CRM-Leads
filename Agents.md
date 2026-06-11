@@ -91,7 +91,7 @@ Leia sempre tambÃ©m:
 
 - PostgreSQL Ã© o banco oficial agora.
 - Banco legado só pode aparecer dentro do `HISTORY.md`.
-- `pgAdmin` substitui `phpMyAdmin`.
+- `pgAdmin` é o admin local oficial do banco.
 - O runtime final de referÃªncia Ã© Node 24 LTS + npm 11.
 - O frontend usa `react-toastify` para feedback visual.
 - O backend usa cookie httpOnly, CORS com credentials e rate limit.
