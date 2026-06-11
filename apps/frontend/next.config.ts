@@ -1,3 +1,10 @@
+/**
+ * Configuracao do Next.js no frontend.
+ *
+ * Responsavel por rewrite da API e validacao da URL publica.
+ *
+ * Define rewrite, validacao da API publica e alinhamento do build do app.
+ */
 import path from "node:path";
 import type { NextConfig } from "next";
 

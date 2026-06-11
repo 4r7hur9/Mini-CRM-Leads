@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por indicador visual reutilizavel.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 type BadgeProps = {
   children: React.ReactNode;
   tone?: "blue" | "green" | "orange" | "red" | "stone" | "teal";

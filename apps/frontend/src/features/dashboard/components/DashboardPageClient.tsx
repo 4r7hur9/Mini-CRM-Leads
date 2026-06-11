@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente do dashboard.
+ *
+ * Responsavel por pagina client do dashboard.
+ *
+ * Consome o dashboard e organiza metricas e Kanban.
+ */
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

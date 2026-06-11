@@ -1,3 +1,10 @@
+/**
+ * Pagina ou layout do App Router.
+ *
+ * Responsavel por layout global do App Router.
+ *
+ * Funciona como ponto de entrada visual do Next.js.
+ */
 import type { Metadata } from "next";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";

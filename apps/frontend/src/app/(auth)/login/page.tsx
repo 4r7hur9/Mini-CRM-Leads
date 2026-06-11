@@ -1,3 +1,10 @@
+/**
+ * Pagina ou layout do App Router.
+ *
+ * Responsavel por pagina de login.
+ *
+ * Funciona como ponto de entrada visual do Next.js.
+ */
 import { AuthCard } from "@/features/auth/components/AuthCard";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 

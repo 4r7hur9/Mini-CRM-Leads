@@ -1,3 +1,10 @@
+/**
+ * Componente de leads.
+ *
+ * Responsavel por item individual da listagem.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { Building2, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";

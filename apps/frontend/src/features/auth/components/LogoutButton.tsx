@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por acao de logout.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";

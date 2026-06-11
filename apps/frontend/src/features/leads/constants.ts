@@ -1,3 +1,10 @@
+/**
+ * Componente de leads.
+ *
+ * Responsavel por constantes de apoio da feature.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import type { LeadStatus } from "./types";
 
 export const LEAD_STATUSES = [

@@ -1,3 +1,10 @@
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por card visual para login e cadastro.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import Link from "next/link";
 import type { ReactNode } from "react";
 

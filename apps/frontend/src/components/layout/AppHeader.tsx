@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de layout.
+ *
+ * Responsavel por topo com navegacao e logout.
+ *
+ * Estrutura a area autenticada e organiza a navegacao do app.
+ */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";

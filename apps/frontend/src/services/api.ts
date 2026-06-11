@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Cliente HTTP central.
+ *
+ * Responsavel por cliente Axios, interceptors e tratamento de erros.
+ *
+ * Serve como cliente Axios central para todas as features do frontend.
+ */
 import axios, { AxiosError } from "axios";
 import { getLoginRedirectPath } from "@/features/auth/utils/logoutRedirect";
 import { API_BASE_URL } from "@/lib/constants";

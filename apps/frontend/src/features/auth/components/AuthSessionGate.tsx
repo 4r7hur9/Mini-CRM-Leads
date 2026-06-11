@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por trava de sessao para area privada.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "../store/authStore";

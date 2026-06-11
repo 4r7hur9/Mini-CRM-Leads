@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por controle do redirecionamento apos logout.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 const LOGOUT_REDIRECT_KEY = "mini-crm-logout-redirect";
 
 export function markLogoutRedirect() {

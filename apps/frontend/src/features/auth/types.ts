@@ -1,3 +1,10 @@
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por tipos da feature de leads.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 export type AuthUser = {
   id: string;
   name: string;

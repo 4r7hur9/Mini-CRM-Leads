@@ -1,3 +1,10 @@
+/**
+ * Componente de layout.
+ *
+ * Responsavel por estrutura base da area autenticada.
+ *
+ * Estrutura a area autenticada e organiza a navegacao do app.
+ */
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 

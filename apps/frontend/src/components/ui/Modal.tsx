@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por modal base.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 import { X } from "lucide-react";
 import { Button } from "./Button";
 

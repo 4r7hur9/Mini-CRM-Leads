@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por estado global de autenticacao.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { create } from "zustand";
 import * as authService from "../services/authService";
 import type { AuthUser, LoginPayload, RegisterPayload } from "../types";

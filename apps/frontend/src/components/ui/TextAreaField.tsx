@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por campo textarea padrao.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 import type { TextareaHTMLAttributes } from "react";
 
 type TextAreaFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {

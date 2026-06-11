@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por saudacao do usuario autenticado.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { useAuthStore } from "../store/authStore";
 
 export function UserGreeting() {

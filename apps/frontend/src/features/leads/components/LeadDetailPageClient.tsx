@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de leads.
+ *
+ * Responsavel por tela de detalhe do lead.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { ArrowLeft, Building2, Mail, Phone, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -1,3 +1,10 @@
+/**
+ * Componente do dashboard.
+ *
+ * Responsavel por card de metricas.
+ *
+ * Consome o dashboard e organiza metricas e Kanban.
+ */
 type MetricCardProps = {
   label: string;
   value: number | string;

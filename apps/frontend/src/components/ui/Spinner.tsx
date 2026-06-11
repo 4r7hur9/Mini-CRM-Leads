@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por indicador de carregamento.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 type SpinnerProps = {
   label?: string;
 };

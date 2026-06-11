@@ -1,3 +1,10 @@
+/**
+ * Contratos das respostas da API.
+ *
+ * Responsavel por contratos padrao de resposta da API.
+ *
+ * Define a forma padrao dos payloads consumidos pelo cliente HTTP.
+ */
 export type ApiSuccess<T> = {
   success: true;
   data: T;

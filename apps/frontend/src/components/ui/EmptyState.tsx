@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por estado vazio reutilizavel.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 type EmptyStateProps = {
   action?: React.ReactNode;
   description: string;

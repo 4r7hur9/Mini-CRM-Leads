@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por viewport global dos toasts.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 import { ToastContainer } from "react-toastify";
 
 export function ToastViewport() {

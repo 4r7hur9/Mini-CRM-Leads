@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de leads.
+ *
+ * Responsavel por pagina client da lista de leads.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";

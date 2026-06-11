@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por formulario de login.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";

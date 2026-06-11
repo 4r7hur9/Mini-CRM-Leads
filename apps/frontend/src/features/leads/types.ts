@@ -1,3 +1,10 @@
+/**
+ * Componente de leads.
+ *
+ * Responsavel por tipos da feature de leads.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 export type LeadStatus = "NOVO" | "EM_ATENDIMENTO" | "PROPOSTA_ENVIADA" | "FECHADO";
 
 export type Lead = {
