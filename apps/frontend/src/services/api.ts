@@ -13,10 +13,33 @@ export const api = axios.create({
   },
 });
 
+function getResponseMessage(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") {
+    return undefined;
+  }
+
+  const response = data as {
+    error?: {
+      message?: unknown;
+    };
+    message?: unknown;
+  };
+
+  if (typeof response.error?.message === "string") {
+    return response.error.message;
+  }
+
+  if (typeof response.message === "string") {
+    return response.message;
+  }
+
+  return undefined;
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
     return (
-      error.response?.data.error.message ??
+      getResponseMessage(error.response?.data) ??
       "Nao foi possivel concluir a operacao. Tente novamente."
     );
   }
