@@ -302,28 +302,47 @@ Auditoria:
 - MySQL pode aparecer apenas como legado historico.
 - O fluxo de trabalho continua por etapas curtas, com validacao, registro e aprovacao.
 
-## 20. Incidente de deploy: rewrite do frontend para backend
+## 20. Incidente de deploy: rewrite e dominio publico do backend
 
 Sintoma:
 
 - em producao, cadastro e login nao respondiam corretamente;
 - o navegador chamava `https://mini-crm-leads.vercel.app/api/v1/auth/register`;
 - a resposta era `404 Not Found`;
-- os headers indicavam passagem pelo Railway, mostrando que o problema nao era CORS nem banco nesse ponto.
+- os headers indicavam passagem pelo Railway, mostrando que o problema nao era CORS nem banco nesse ponto;
+- testes diretos em `/health`, `/api/v1/health` e `/api/v1/auth/login` no dominio publico do backend tambem retornaram 404.
 
-Causa raiz:
+Hipotese inicial e endurecimento aplicado:
 
-- o rewrite do Next.js removia o prefixo `/api/v1` antes de encaminhar para o backend;
-- quando `NEXT_PUBLIC_API_URL` era configurada apenas com a raiz do backend Railway, o backend recebia `/auth/register`;
-- a API Express registra as rotas em `/api/v1`, entao `/auth/register` nao existe e retorna 404.
+- o rewrite do Next.js dependia de `NEXT_PUBLIC_API_URL` terminar em `/api/v1`;
+- o frontend passou a normalizar a URL para aceitar o valor com ou sem esse prefixo.
 
-Correcao aplicada:
+Causa raiz confirmada:
 
-- `apps/frontend/next.config.ts` passou a normalizar `NEXT_PUBLIC_API_URL`;
-- se a variavel vier sem `/api/v1`, o frontend adiciona automaticamente;
-- se a variavel ja vier com `/api/v1`, o comportamento permanece igual.
+- o dominio Railway respondia `Application not found` com `x-railway-fallback: true`;
+- essa resposta e gerada pelo edge do Railway antes de alcancar o container;
+- a comparacao com a `main` confirmou que rotas, healthcheck, `PORT`, comando de inicializacao e servidor Express nao regrediram;
+- o dominio publico do Railway precisa ser vinculado novamente ao servico backend ativo e a porta correta.
 
 Acao manual necessaria:
 
-- redeploy do frontend na Vercel para aplicar o novo rewrite;
-- manter `NEXT_PUBLIC_API_URL` apontando para a URL publica do backend Railway, com ou sem `/api/v1`.
+- no Railway, abrir o servico backend ativo e revisar `Settings > Networking`;
+- gerar ou vincular um dominio publico ao servico e selecionar a porta exposta pelo backend;
+- validar diretamente o novo dominio em `/health` antes de atualizar a Vercel;
+- atualizar `NEXT_PUBLIC_API_URL` na Vercel para o dominio publico funcional e realizar redeploy.
+
+Validacao posterior:
+
+- uma nova imagem Docker foi publicada em `4r7hur9/minicrmdeleads-backend:railway-fix-20260611`;
+- a mesma imagem tambem atualizou a tag `latest`;
+- digest publicado: `sha256:075fffa2580af0af299c436708d28bbb15713b44624917d061f76c3828462ea0`;
+- a imagem foi executada localmente com `node dist/server.js`;
+- `GET http://localhost:3999/health` respondeu HTTP 200;
+- logs locais confirmaram `API running on port 3001`.
+
+Conclusao:
+
+- a imagem do backend esta funcional;
+- o 404 com `x-railway-fallback: true` e `Application not found` nao vem do Express;
+- o dominio usado pela Vercel ainda aponta para um endpoint Railway sem aplicacao vinculada ou para um servico/porta incorreto;
+- a proxima correcao deve ocorrer na configuracao do servico Railway e no valor de `NEXT_PUBLIC_API_URL` da Vercel.

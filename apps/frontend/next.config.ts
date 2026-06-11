@@ -2,6 +2,7 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const DEFAULT_API_REWRITE_TARGET = "http://localhost:3001/api/v1";
+const workspaceRoot = path.resolve(__dirname, "../..");
 
 function getApiRewriteTarget() {
   const rawTarget = process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_REWRITE_TARGET;
@@ -14,6 +15,7 @@ const apiRewriteTarget = getApiRewriteTarget();
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingRoot: workspaceRoot,
   async rewrites() {
     return [
       {
@@ -23,7 +25,7 @@ const nextConfig: NextConfig = {
     ];
   },
   turbopack: {
-    root: path.resolve(__dirname),
+    root: workspaceRoot,
   },
 };
 
