@@ -1,3 +1,10 @@
+/**
+ * Arquivo TypeScript do projeto.
+ *
+ * Responsavel por fluxos de leads e interacoes.
+ *
+ * Mantem a responsabilidade do arquivo separada das camadas vizinhas.
+ */
 import { expect, type Page } from "@playwright/test";
 import { test } from "./fixtures/auth.fixture";
 

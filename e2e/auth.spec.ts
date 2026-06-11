@@ -1,3 +1,10 @@
+/**
+ * Arquivo TypeScript do projeto.
+ *
+ * Responsavel por fluxos de login, cadastro e logout.
+ *
+ * Mantem a responsabilidade do arquivo separada das camadas vizinhas.
+ */
 import { expect, test } from "@playwright/test";
 
 const seededUser = {
