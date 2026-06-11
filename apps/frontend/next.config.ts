@@ -1,8 +1,16 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-const apiRewriteTarget =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:3001/api/v1";
+const DEFAULT_API_REWRITE_TARGET = "http://localhost:3001/api/v1";
+
+function getApiRewriteTarget() {
+  const rawTarget = process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_REWRITE_TARGET;
+  const target = rawTarget.replace(/\/+$/, "");
+
+  return target.endsWith("/api/v1") ? target : `${target}/api/v1`;
+}
+
+const apiRewriteTarget = getApiRewriteTarget();
 
 const nextConfig: NextConfig = {
   output: "standalone",

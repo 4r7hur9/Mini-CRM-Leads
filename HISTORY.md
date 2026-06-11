@@ -301,3 +301,29 @@ Auditoria:
 - PostgreSQL e o banco oficial.
 - MySQL pode aparecer apenas como legado historico.
 - O fluxo de trabalho continua por etapas curtas, com validacao, registro e aprovacao.
+
+## 20. Incidente de deploy: rewrite do frontend para backend
+
+Sintoma:
+
+- em producao, cadastro e login nao respondiam corretamente;
+- o navegador chamava `https://mini-crm-leads.vercel.app/api/v1/auth/register`;
+- a resposta era `404 Not Found`;
+- os headers indicavam passagem pelo Railway, mostrando que o problema nao era CORS nem banco nesse ponto.
+
+Causa raiz:
+
+- o rewrite do Next.js removia o prefixo `/api/v1` antes de encaminhar para o backend;
+- quando `NEXT_PUBLIC_API_URL` era configurada apenas com a raiz do backend Railway, o backend recebia `/auth/register`;
+- a API Express registra as rotas em `/api/v1`, entao `/auth/register` nao existe e retorna 404.
+
+Correcao aplicada:
+
+- `apps/frontend/next.config.ts` passou a normalizar `NEXT_PUBLIC_API_URL`;
+- se a variavel vier sem `/api/v1`, o frontend adiciona automaticamente;
+- se a variavel ja vier com `/api/v1`, o comportamento permanece igual.
+
+Acao manual necessaria:
+
+- redeploy do frontend na Vercel para aplicar o novo rewrite;
+- manter `NEXT_PUBLIC_API_URL` apontando para a URL publica do backend Railway, com ou sem `/api/v1`.
