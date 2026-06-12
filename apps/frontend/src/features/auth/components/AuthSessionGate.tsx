@@ -1,8 +1,16 @@
 "use client";
 
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por trava de sessao para area privada.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
+import { getLoginRedirectPath } from "../utils/logoutRedirect";
 
 type AuthSessionGateProps = {
   children: React.ReactNode;
@@ -18,7 +26,7 @@ export function AuthSessionGate({ children }: AuthSessionGateProps) {
 
     loadCurrentUser().then((user) => {
       if (active && !user) {
-        router.replace("/login");
+        router.replace(getLoginRedirectPath());
       }
     });
 

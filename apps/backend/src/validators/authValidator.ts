@@ -1,3 +1,10 @@
+/**
+ * Validador de entrada.
+ *
+ * Responsavel por schema de entrada de register/login.
+ *
+ * E usado pelo validationMiddleware antes da execucao do controller.
+ */
 import { z } from "zod";
 
 const emailSchema = z

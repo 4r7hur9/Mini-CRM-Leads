@@ -1,4 +1,4 @@
-# PROMPT MESTRE — Mini CRM de Leads
+﻿# PROMPT MESTRE — Mini CRM de Leads
 
 > Copie este prompt completo para o seu assistente de IA (Cursor, Claude, ChatGPT, Copilot, etc.)
 > e execute por seção conforme a ordem indicada na Seção 20.
@@ -47,9 +47,9 @@ Construir um **Mini CRM de Leads** full-stack como teste técnico para vaga de D
 | Estado global      | Zustand                             | Leve, sem boilerplate, substitui Context para estado de auth                     |
 | HTTP client        | Axios com interceptors              | Tratamento global de erros e tokens                                              |
 | Backend            | Node.js + Express + TypeScript      | Stack padrão do teste                                                            |
-| ORM                | Prisma                              | Migrações, tipagem e relações com MySQL                                          |
-| Banco              | MySQL 8.0                           | Robusto, amplamente suportado, compatível com Prisma e Railway                   |
-| Admin DB           | phpMyAdmin                          | Interface visual para MySQL no Docker — http://localhost:8081                    |
+| ORM                | Prisma                              | Migrações, tipagem e relações com PostgreSQL                                     |
+| Banco              | PostgreSQL 17                       | Robusto, amplamente suportado, compatível com Prisma e Railway                   |
+| Admin DB           | pgAdmin                             | Interface visual para PostgreSQL no Docker — http://localhost:8081               |
 | Proxy reverso      | Traefik v3                          | Roteamento Docker — frontend + backend no mesmo host porta 80                    |
 | Autenticação       | JWT em httpOnly Cookie              | Proteção contra XSS (OWASP A02, A07)                                             |
 | Hash de senha      | bcrypt (salt rounds: 12)            | Resistente a brute-force                                                         |
@@ -58,9 +58,9 @@ Construir um **Mini CRM de Leads** full-stack como teste técnico para vaga de D
 | Headers seguros    | helmet                              | OWASP A05 Security Misconfiguration                                              |
 | Testes backend     | Jest + ts-jest + Supertest          | Unitários e integração no backend — ecossistema maduro, sem config extra para TS |
 | Testes E2E         | Playwright + @playwright/test       | Testes end-to-end do frontend — fluxos reais no browser (Chromium/Firefox)       |
-| Containerização    | Docker Compose + Traefik v3         | 5 serviços: Traefik + MySQL + phpMyAdmin + Backend + Frontend                    |
+| Containerização    | Docker Compose + Traefik v3         | 5 serviços: Traefik + PostgreSQL + pgAdmin + Backend + Frontend                  |
 | Deploy frontend    | Vercel                              | Zero config com Next.js                                                          |
-| Deploy backend     | Railway                             | MySQL + Express em container                                                     |
+| Deploy backend     | Railway                             | PostgreSQL + Express em container                                                |
 
 ---
 
@@ -77,9 +77,10 @@ mini-crm-leads/
 │       ├── prompts.md     # Prompts utilizados
 │       ├── decisions.md   # Decisões técnicas
 │       └── review.md      # Revisão do código gerado
-├── docker-compose.yml     # Traefik + MySQL + phpMyAdmin + Backend + Frontend (5 serviços)
+├── docker-compose.yml     # Traefik + PostgreSQL + pgAdmin + Backend + Frontend (5 serviços)
 ├── .env.example           # Variáveis de ambiente de referência
 ├── .gitignore
+├── HISTORY.md             # Cronologia viva das etapas, incidentes e decisões
 └── README.md              # Documentação principal
 ```
 
@@ -246,7 +247,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -715,9 +716,9 @@ export const clearCookieOptions: CookieOptions = {
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   PORT: z.string().default("3001"),
-  // ATENÇÃO: z.string().url() rejeita mysql:// (valida só http/https)
-  // Usar startsWith para aceitar URLs MySQL sem falso-positivo
-  DATABASE_URL: z.string().min(10).startsWith("mysql://"),
+  // ATENÇÃO: z.string().url() rejeita postgresql:// (valida só http/https)
+  // Usar startsWith para aceitar URLs PostgreSQL sem falso-positivo
+  DATABASE_URL: z.string().min(10).startsWith("postgresql://"),
   JWT_SECRET: z.string().min(32), // mínimo 32 chars para segurança
   CORS_ORIGIN: z.string().url(), // CORS_ORIGIN é http(s):// — .url() correto aqui
 });
@@ -779,7 +780,7 @@ Implementar e garantir cada item abaixo:
     ...(status && { status }),
     ...(search && {
       OR: [
-        // MySQL utf8mb4_unicode_ci é case-insensitive por padrão — sem mode:"insensitive"
+        // Em PostgreSQL, usar mode:"insensitive" para busca flexível sem depender de collation
         { name: { contains: search } },
         { email: { contains: search } },
         { company: { contains: search } },
@@ -797,7 +798,7 @@ Implementar e garantir cada item abaixo:
 - [ ] **Sem** permissão `DROP`, `ALTER`, `CREATE`, `TRUNCATE` para o usuário da aplicação
 - [ ] Configurar no `docker-compose.yml` e documentar no `.env.example`:
   ```sql
-  -- Executar no seed ou migration inicial (MySQL 8.0):
+  -- Executar no seed ou migration inicial (PostgreSQL):
   -- Criar usuário restrito para a aplicação
   CREATE USER 'app_user'@'%' IDENTIFIED BY 'senha_app';
   GRANT SELECT, INSERT, UPDATE, DELETE ON mini_crm_leads.* TO 'app_user'@'%';
@@ -1444,7 +1445,7 @@ D) Validação por breakpoint — confirmar 320/375/425/768/1024/1280
 
 ## [SEÇÃO 12] DOCKER — CONFIGURAÇÃO COMPLETA
 
-> Um único `docker-compose up -d` sobe **Traefik + MySQL + phpMyAdmin + Backend + Frontend**.
+> Um único `docker-compose up -d` sobe **Traefik + PostgreSQL + pgAdmin + Backend + Frontend**.
 > Cada serviço tem seu próprio container. Traefik roteia o tráfego HTTP.
 > Frontend e Backend ficam no mesmo host (`localhost`) separados por rota de path.
 
@@ -1474,42 +1475,41 @@ services:
     networks:
       - mini_crm_net
 
-  # ─── BANCO DE DADOS MySQL ───────────────────────────────────────
-  mysql:
-    image: mysql:8.0
-    container_name: mini_crm_mysql
+  # ─── BANCO DE DADOS PostgreSQL ──────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: mini_crm_postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "3306:3306" # exposto apenas para Prisma Studio e ferramentas locais
+      - "5433:5432" # exposto apenas para Prisma Studio e ferramentas locais
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
       - mini_crm_net
 
-  # ─── phpMyAdmin — ADMIN WEB DO BANCO ───────────────────────────
+  # ─── pgAdmin — ADMIN WEB DO BANCO ──────────────────────────────
   # Acessível em http://localhost:8081
-  # Login: usuário/senha do MYSQL_USER + MYSQL_PASSWORD
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: mini_crm_phpmyadmin
+  # Login: email/senha do PGADMIN_DEFAULT_EMAIL + PGADMIN_DEFAULT_PASSWORD
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mini_crm_pgadmin
     restart: unless-stopped
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     environment:
-      PMA_HOST: mysql # nome do serviço MySQL na rede Docker
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 0 # desabilita login em servidor arbitrário
+      PGADMIN_DEFAULT_EMAIL: admin@mini-crm.local
+      PGADMIN_DEFAULT_PASSWORD: admin123456
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
     ports:
       - "8081:80" # http://localhost:8081
     networks:
@@ -1523,13 +1523,13 @@ services:
     container_name: mini_crm_backend
     restart: unless-stopped
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3001
-      # Usa nome do serviço MySQL como host (rede interna Docker)
-      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      # Usa nome do serviço PostgreSQL como host (rede interna Docker)
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       JWT_SECRET: ${JWT_SECRET}
       # Com Traefik: browser acessa frontend e backend via http://localhost (porta 80)
       CORS_ORIGIN: http://localhost
@@ -1572,7 +1572,7 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:
+  postgres_data:
 ```
 
 > **URLs disponíveis após `docker-compose up -d`:**
@@ -1582,7 +1582,7 @@ volumes:
 > | http://localhost        | Frontend (Next.js via Traefik)    |
 > | http://localhost/api/v1 | Backend API (Express via Traefik) |
 > | http://localhost:8080   | Traefik Dashboard                 |
-> | http://localhost:8081   | phpMyAdmin (MySQL)                |
+> | http://localhost:8081   | pgAdmin (PostgreSQL)              |
 >
 > **Nota sobre `NEXT_PUBLIC_API_URL`:** Variável baked no bundle em build time.
 > Com Traefik: usar `http://localhost/api/v1` (mesmo host, sem porta).
@@ -1735,7 +1735,7 @@ playwright-report
 ### 12.6 Comandos de operação
 
 ```bash
-# Subir todos os 5 serviços (traefik + mysql + phpmyadmin + backend + frontend)
+# Subir todos os 5 serviços (traefik + postgres + pgadmin + backend + frontend)
 docker-compose up -d
 
 # Acompanhar todos os logs em tempo real
@@ -1743,7 +1743,7 @@ docker-compose logs -f
 
 # Ver logs de um serviço específico
 docker-compose logs -f backend
-docker-compose logs -f mysql
+docker-compose logs -f postgres
 
 # Verificar status de todos os containers
 docker-compose ps
@@ -1755,11 +1755,11 @@ docker-compose up -d --build frontend
 # Rodar seed dentro do container do backend
 docker-compose exec backend npx prisma db seed
 
-# Abrir Prisma Studio (conecta no MySQL local — requer mysql rodando)
-DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_leads npx prisma studio
+# Abrir Prisma Studio (conecta no PostgreSQL local — requer postgres rodando)
+DATABASE_URL=postgresql://app:changeme@localhost:5433/mini_crm_leads?schema=public npx prisma studio
 
-# Acessar shell do container MySQL
-docker-compose exec mysql mysql -u app -pchangeme mini_crm_leads
+# Acessar shell do container PostgreSQL
+docker-compose exec postgres psql -U app -d mini_crm_leads
 
 # Parar tudo (preserva volume do banco)
 docker-compose down
@@ -1773,8 +1773,8 @@ docker-compose down -v
 > - `http://localhost` → Frontend (via Traefik porta 80)
 > - `http://localhost/api/v1` → Backend API (via Traefik porta 80)
 > - `http://localhost:8080` → Traefik Dashboard
-> - `http://localhost:8081` → phpMyAdmin (login: `app` / `changeme`)
-> - `localhost:3306` → MySQL direto (para Prisma Studio e ferramentas locais)
+> - `http://localhost:8081` → pgAdmin (login: `admin@mini-crm.local` / `admin123456`)
+> - `localhost:5433` → PostgreSQL direto (para Prisma Studio e ferramentas locais)
 
 ---
 
@@ -1783,15 +1783,17 @@ docker-compose down -v
 ### .env.example (raiz) — usado pelo docker-compose
 
 ```env
-# ─── BANCO DE DADOS MySQL (docker-compose) ───────────────────────
-MYSQL_ROOT_PASSWORD=rootchangeme
-MYSQL_DATABASE=mini_crm_leads
-MYSQL_USER=app
-MYSQL_PASSWORD=changeme
+# ─── BANCO DE DADOS PostgreSQL (docker-compose) ──────────────────
+POSTGRES_DB=mini_crm_leads
+POSTGRES_USER=app
+POSTGRES_PASSWORD=changeme
+POSTGRES_PORT=5433
+PGADMIN_DEFAULT_EMAIL=admin@mini-crm.local
+PGADMIN_DEFAULT_PASSWORD=admin123456
 
 # ─── AUTH ─────────────────────────────────────────────────────────
 # Gerar com: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-JWT_SECRET=your-super-secret-key-minimum-32-chars-here
+JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
 
 # ─── CORS ─────────────────────────────────────────────────────────
 # Com Traefik: browser acessa frontend e backend pelo mesmo origin (http://localhost)
@@ -1808,13 +1810,13 @@ NEXT_PUBLIC_API_URL=http://localhost/api/v1
 NODE_ENV=development
 PORT=3001
 
-# Local (sem Docker): aponta para MySQL rodando localmente
-DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_leads
+# Local (sem Docker): aponta para PostgreSQL rodando localmente
+DATABASE_URL=postgresql://app:changeme@localhost:5433/mini_crm_leads?schema=public
 
 # Docker: usar nome do serviço como host (rede interna Docker)
-# DATABASE_URL=mysql://app:changeme@mysql:3306/mini_crm_leads
+# DATABASE_URL=postgresql://app:changeme@postgres:5432/mini_crm_leads?schema=public
 
-JWT_SECRET=your-super-secret-key-minimum-32-chars-here
+JWT_SECRET=gere_um_segredo_longo_com_32_ou_mais_caracteres
 
 # Sem Docker (npm run dev): frontend em :3000, sem Traefik
 CORS_ORIGIN=http://localhost:3000
@@ -1825,7 +1827,7 @@ CORS_ORIGIN=http://localhost:3000
 ```env
 NODE_ENV=test
 PORT=3002
-DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_test
+DATABASE_URL=postgresql://app:changeme@localhost:5433/mini_crm_test?schema=public
 JWT_SECRET=test-secret-key-minimum-32-chars-for-tests
 CORS_ORIGIN=http://localhost:3000
 ```
@@ -1844,8 +1846,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 >
 > | Contexto                  | DATABASE_URL                     | CORS_ORIGIN                   | NEXT_PUBLIC_API_URL                  |
 > | ------------------------- | -------------------------------- | ----------------------------- | ------------------------------------ |
-> | Local (npm run dev)       | `mysql://...@localhost:3306/...` | `http://localhost:3000`       | `http://localhost:3001/api/v1`       |
-> | Docker + Traefik          | `mysql://...@mysql:3306/...`     | `http://localhost`            | `http://localhost/api/v1`            |
+> | Local (npm run dev)       | `postgresql://...@localhost:5433/...`         | `http://localhost:3000` | `http://localhost:3001/api/v1`       |
+> | Docker + Traefik          | `postgresql://...@postgres:5432/...`          | `http://localhost`      | `http://localhost/api/v1`            |
 > | Produção (Railway/Vercel) | URL gerada pelo Railway          | `https://frontend.vercel.app` | `https://backend.railway.app/api/v1` |
 
 ---
@@ -1889,7 +1891,7 @@ npm install -D jest ts-jest @types/jest supertest @types/supertest
 > ```env
 > # apps/backend/.env.test
 > NODE_ENV=test
-> DATABASE_URL=mysql://app:changeme@localhost:3306/mini_crm_test
+> DATABASE_URL=postgresql://app:changeme@localhost:5433/mini_crm_test?schema=public
 > JWT_SECRET=test-secret-key-minimum-32-chars-here
 > CORS_ORIGIN=http://localhost:3000
 > PORT=3002
@@ -2248,7 +2250,7 @@ Adicionar os seguintes scripts:
 
 ## [SEÇÃO 15] DOCUMENTAÇÃO /docs/ai
 
-Criar e preencher os 4 arquivos durante o desenvolvimento:
+Criar os 4 arquivos como templates de preenchimento manual durante o desenvolvimento:
 
 ### /docs/ai/README.md
 
@@ -2257,12 +2259,14 @@ Criar e preencher os 4 arquivos durante o desenvolvimento:
 - Em quais partes foi escrito/decidido manualmente
 - Limitações ou erros apresentados pela IA
 - Como o código gerado foi revisado
+- Se a resposta final ainda nao estiver pronta, mantenha o arquivo em formato de questionario para preenchimento manual
 
 ### /docs/ai/prompts.md
 
 - Registrar todos os prompts principais utilizados
 - Formato: nome da tarefa, ferramenta usada, prompt, resultado, o que aproveitou e o que alterou
 - **Incluir este PROMPT-MESTRE como Prompt 1**
+- Se o conteudo ainda estiver em aberto, deixar apenas perguntas e campos de preenchimento
 
 ### /docs/ai/decisions.md
 
@@ -2300,7 +2304,7 @@ test(leads): add unit tests for LeadService
 test(auth): add integration tests for auth routes
 test(e2e): add Playwright E2E specs for auth, leads and kanban
 chore(playwright): configure playwright with chromium, firefox and mobile
-chore(docker): add docker-compose with traefik + mysql + phpmyadmin + backend + frontend
+chore(docker): add docker-compose with traefik + postgres + pgadmin + backend + frontend
 docs(ai): add AI usage documentation
 chore: initial monorepo structure
 ```
@@ -2313,7 +2317,7 @@ O `README.md` na raiz do projeto deve conter:
 
 1. **Descrição do projeto** — O que é o Mini CRM de Leads
 2. **Tecnologias** — Stack completa com versões
-3. **Pré-requisitos** — Node.js, Docker (inclui MySQL e phpMyAdmin via Compose)
+3. **Pré-requisitos** — Node.js, Docker (inclui PostgreSQL e pgAdmin via Compose)
 4. **Instalação** — `git clone`, `npm install` em cada app
 5. **Configuração de variáveis** — Copiar `.env.example`, preencher valores
 6. **Rodar com Docker** — `docker-compose up -d`
@@ -2326,6 +2330,9 @@ O `README.md` na raiz do projeto deve conter:
 12. **Funcionalidades entregues** — lista do que foi implementado
 13. **Funcionalidades pendentes** — lista do que não foi feito (honesto)
 14. **Decisões técnicas principais** — resumo das escolhas
+15. **Mapa de arquivos** — link para `docs/file-index.md`
+16. **Guia de variáveis** — link para `docs/environment.md`
+17. **Documentação de IA** — links para `docs/ai/README.md`, `docs/ai/prompts.md`, `docs/ai/decisions.md` e `docs/ai/review.md`
 
 ---
 
@@ -2364,7 +2371,7 @@ O `README.md` na raiz do projeto deve conter:
 ### Backend — Railway
 
 1. Criar projeto no railway.app
-2. Adicionar serviço MySQL (ou usar plugin MySQL do Railway) → copiar DATABASE_URL gerada
+2. Adicionar serviço PostgreSQL (ou usar plugin PostgreSQL do Railway) → copiar DATABASE_URL gerada
 3. Adicionar serviço do repositório GitHub (pasta `apps/backend`)
 4. Configurar variáveis de ambiente (`DATABASE_URL` gerado pelo Railway, `JWT_SECRET`, `CORS_ORIGIN`)
 5. Garantir que o Dockerfile faz `prisma migrate deploy` no start
@@ -2373,343 +2380,216 @@ O `README.md` na raiz do projeto deve conter:
 
 ## [SEÇÃO 20] ORDEM DE EXECUÇÃO POR ETAPAS
 
-> Execute uma etapa por vez na IA. Só avance quando a etapa atual estiver funcionando.
-> Estratégia de commits: menos commits, porém mais informativos e com escopo claro.
+> Execute uma etapa por vez. Só avance quando a etapa atual estiver validada, registrada no `HISTORY.md` e aprovada pelo usuário.
 
 ---
 
-### Padrão de Commit Estratégico (obrigatório)
-
-Use sempre commit com título + corpo:
+### Estratégia de branch obrigatória
 
 ```bash
-git commit -m "tipo(escopo): resumo objetivo da entrega" \
-  -m "Contexto: por que esta mudança foi necessária." \
-  -m "Inclui: lista curta dos principais arquivos/partes alteradas." \
-  -m "Impacto: o que passa a funcionar e como validar rapidamente."
+git checkout -b chore/postgresql-migration
 ```
 
-Boas práticas:
+Regras:
 
-- Um commit por bloco funcional completo (não por arquivo isolado).
-- Título com até ~72 caracteres, corpo com decisões e impacto.
-- Evitar commit genérico como "ajustes" ou "update".
+- toda a iniciativa acontece nessa branch dedicada;
+- commits semânticos por etapa;
+- pushes frequentes para backup e rastreabilidade;
+- se a `main` receber mudanças durante a migração:
+
+```bash
+git fetch origin
+git merge origin/main
+```
+
+- evitar rebase com force-push em fluxo longo;
+- integrar de volta para `main` apenas depois de build, testes, E2E, Docker, deploy e docs finais validados.
 
 ---
 
-### ─── ETAPA 1 — BANCO DE DADOS (MySQL + Prisma) ─────────────
+### ETAPA 0 — REORGANIZAR O PLANO OFICIAL
 
-Objetivo: banco configurado, schema validado, migration e seed prontos.
+Objetivo: atualizar `PROMPT-MESTRE.md`, `PROMPT-EXECUTOR.md` e `HISTORY.md` para refletir a migração completa para PostgreSQL.
 
-Commits estratégicos:
+Commit sugerido:
 
-1. chore(db): bootstrap prisma + datasource mysql
-   Contexto: inicializa infraestrutura de persistência.
-   Inclui: prisma init, datasource mysql, env example base.
-   Impacto: projeto pronto para migrar schema.
-
-2. feat(db): schema completo + migration inicial + seed
-   Contexto: materializa modelo de domínio no banco.
-   Inclui: User/Lead/Interaction/enums, migration init, seed com usuário e dados de teste.
-   Impacto: banco reproduzível e pronto para desenvolvimento.
+- `docs(planning): reorganizar fluxo oficial para migracao postgresql`
 
 Validação:
 
-- npx prisma migrate dev --name init
-- npx prisma db seed
-- npx prisma studio
+- leitura completa dos prompts;
+- confirmação de que `HISTORY.md` existe e foi atualizado.
 
 ---
 
-### ─── ETAPA 2 — BACKEND FUNDAÇÃO (Express + Segurança) ───────
+### ETAPA 1 — UPGRADE DE RUNTIME
 
-Objetivo: servidor TypeScript com arquitetura de camadas e segurança base.
+Objetivo: migrar o projeto para `Node 24 LTS + npm 11`, alinhando Dockerfiles, manifests e lockfiles antes da troca do banco.
 
-Commits estratégicos:
+Commit sugerido:
 
-1. chore(backend): setup TypeScript + scripts + dependências core
-   Contexto: estrutura mínima executável.
-   Inclui: dependências runtime/dev, tsconfig, scripts build/dev/start/test.
-   Impacto: backend compila e sobe corretamente.
-
-2. feat(core): config de ambiente + prisma singleton + tratamento de erros
-   Contexto: robustez operacional e padronização.
-   Inclui: config/env.ts, config/database.ts, AppError, asyncHandler, errorMiddleware.
-   Impacto: falhas ficam previsíveis e auditáveis.
-
-3. feat(app): app.ts/server.ts com helmet, cors, cookie-parser e rate-limit
-   Contexto: hardening inicial OWASP.
-   Inclui: middlewares globais, bootstrap do servidor, graceful shutdown.
-   Impacto: API pronta para receber módulos de negócio.
+- `chore(runtime): atualizar stacks para node 24 lts e npm 11`
 
 Validação:
 
-- npm run dev
-- GET /health (ou rota base da API)
+- `node -v`
+- `npm -v`
+- `npm run build`
 
 ---
 
-### ─── ETAPA 3 — AUTENTICAÇÃO ──────────────────────────────────
+### ETAPA 2 — INFRA DOCKER POSTGRESQL
 
-Objetivo: register, login, logout e me com JWT em cookie httpOnly.
+Objetivo: substituir a stack legada de banco pela stack PostgreSQL, adotar pgAdmin e usar `postgres-local` como compose isolado.
 
-Commits estratégicos:
+Commits sugeridos:
 
-1. feat(auth): domínio de autenticação completo
-   Contexto: núcleo de identidade e acesso.
-   Inclui: validator, repository, service, controller, typing req.user.
-   Impacto: autenticação com bcrypt + JWT segura e tipada.
-
-2. feat(auth): middleware e rotas de autenticação integradas
-   Contexto: expor fluxo completo para cliente.
-   Inclui: authMiddleware, authRoutes, registro no router principal.
-   Impacto: endpoints /auth/register, /auth/login, /auth/logout e /auth/me funcionais.
+- `chore(docker): substituir banco legado por postgres na stack principal`
+- `chore(docker): substituir stack local isolada por postgres`
 
 Validação:
 
-- POST /auth/register
-- POST /auth/login
-- GET /auth/me
-- POST /auth/logout
+- `docker compose config`
+- `docker compose up -d --build`
+- `docker compose ps`
 
 ---
 
-### ─── ETAPA 4 — LEADS (CRUD + Ownership) ──────────────────────
+### ETAPA 3 — PRISMA, MIGRATION INICIAL E SEED
 
-Objetivo: CRUD de leads com isolamento por usuário autenticado.
+Objetivo: trocar o datasource Prisma para PostgreSQL, recriar a migration inicial e preservar o seed funcional com `admin@teste.com / Admin@123`.
 
-Commits estratégicos:
+Commits sugeridos:
 
-1. feat(leads): CRUD base de leads com validação
-   Contexto: implementar recurso principal do CRM.
-   Inclui: validator, repository, service, controller, routes.
-   Impacto: criar/listar/editar/remover leads com tipagem e erros padronizados.
-
-2. feat(leads): filtros, paginação, busca e PATCH de status
-   Contexto: suportar UX de funil/kanban.
-   Inclui: query params, paginação, busca por nome/email/empresa, endpoint PATCH status.
-   Impacto: API preparada para listagem avançada e board de status.
+- `chore(db): migrar datasource e urls para postgresql`
+- `feat(db): recriar migration inicial e seed em postgres`
 
 Validação:
 
-- GET /leads?page=1&limit=20&status=NOVO&search=acme
-- PATCH /leads/:id/status
+- `npx prisma validate`
+- `npx prisma generate`
+- `npx prisma migrate dev --name init_postgresql`
+- `npm run db:seed`
 
 ---
 
-### ─── ETAPA 5 — INTERAÇÕES + DASHBOARD ────────────────────────
+### ETAPA 4 — TESTES BACKEND EM POSTGRESQL
 
-Objetivo: histórico de contato por lead e visão analítica consolidada.
+Objetivo: alinhar a suíte backend ao PostgreSQL sem perder a cobertura de comportamento existente.
 
-Commits estratégicos:
+Commit sugerido:
 
-1. feat(interactions): módulo de interações por lead
-   Contexto: registrar relacionamento comercial.
-   Inclui: validator/repository/service/controller/routes de interações.
-   Impacto: timeline de interação por lead com verificação de ownership.
-
-2. feat(dashboard): agregações com Promise.all
-   Contexto: visão executiva de funil.
-   Inclui: service/controller/route para métricas e últimos leads.
-   Impacto: endpoint único para alimentar cards do dashboard.
+- `test(backend): alinhar suite com postgres`
 
 Validação:
 
-- POST /leads/:leadId/interactions
-- GET /dashboard
+- `npm test`
+- `npm run test:coverage`
 
 ---
 
-### ─── ETAPA 6 — TESTES BACKEND (Jest + Supertest) ─────────────
+### ETAPA 5 — FEEDBACK VISUAL COM REACT-TOASTIFY
 
-Objetivo: reduzir regressão e garantir regras críticas de negócio.
+Objetivo: adicionar `react-toastify` ao frontend, registrar o container global e aplicar feedback visual em auth, CRUD principal, interações, Kanban e logout.
 
-Commits estratégicos:
+Commit sugerido:
 
-1. test(backend): infraestrutura de testes e isolamento de banco
-   Contexto: base para suíte confiável.
-   Inclui: jest.config.ts, tests/setup.ts, dependências de teste, env de teste.
-   Impacto: execução determinística de testes.
-
-2. test(backend): suíte unitária e integração para auth e leads
-   Contexto: proteger fluxos críticos.
-   Inclui: authService.test, leadService.test, auth.test, leads.test.
-   Impacto: cobertura mínima do núcleo do CRM.
+- `feat(ui): adicionar feedback visual com react-toastify`
 
 Validação:
 
-- npm test
-- npm run test:coverage
+- login inválido com erro visual;
+- cadastro, login, logout e CRUD com sucesso visual.
 
 ---
 
-### ─── ETAPA 7 — DOCKER COMPLETO (5 serviços) ──────────────────
+### ETAPA 6 — E2E ALINHADO AO POSTGRESQL E AOS TOASTS
 
-Objetivo: subir ambiente inteiro com um único comando.
+Objetivo: alinhar a suíte Playwright ao PostgreSQL e validar os novos toasts sem perder a cobertura dos fluxos críticos.
 
-Commits estratégicos:
+Commit sugerido:
 
-1. chore(docker): dockerfiles multi-stage + dockerignore (backend/frontend)
-   Contexto: imagens menores e mais seguras.
-   Inclui: Dockerfile backend, Dockerfile frontend standalone, dockerignore de ambos.
-   Impacto: build previsível, execução com usuário não-root.
-
-2. feat(docker): docker-compose com traefik + mysql + phpmyadmin + backend + frontend
-   Contexto: orquestração local unificada.
-   Inclui: healthcheck mysql, roteamento traefik (/api -> backend, resto -> frontend), rede e volume.
-   Impacto: stack inteira operacional em localhost.
-
-3. docs(docker): variáveis e operação
-   Contexto: evitar erro de ambiente.
-   Inclui: .env.example atualizado, comandos de subida/logs/seed/reset.
-   Impacto: onboarding rápido e execução reproduzível.
+- `test(e2e): alinhar suite com postgres e toasts`
 
 Validação:
 
-- docker-compose up -d --build
-- docker-compose ps
-- http://localhost
-- http://localhost:8081
+- `npm run test:e2e`
 
 ---
 
-### ─── ETAPA 8 — FRONTEND BASE (Next.js + Auth) ────────────────
+### ETAPA 7 — DEPLOY POSTGRESQL EM RAILWAY E VERCEL
 
-Objetivo: base do app web com autenticação e estrutura escalável.
+Objetivo: provisionar PostgreSQL no Railway, conectar o backend à URL do serviço real e manter o proxy `/api/v1` no frontend.
 
-Commits estratégicos:
+Commits sugeridos:
 
-1. chore(frontend): scaffold Next.js + dependências essenciais
-   Contexto: preparar plataforma de UI.
-   Inclui: create-next-app, axios, zustand, react-hook-form, zod.
-   Impacto: front pronto para implementação por feature.
-
-2. feat(frontend): infraestrutura de cliente
-   Contexto: padronizar comunicação e estado.
-   Inclui: services/api.ts, authStore, types compartilhados, validators, utils/constants.
-   Impacto: base consistente para páginas privadas.
-
-3. feat(auth-ui): páginas login/register e layout privado
-   Contexto: controlar acesso no frontend.
-   Inclui: telas de auth, proteção server-side em layout privado.
-   Impacto: fluxo autenticado funcional de ponta a ponta.
+- `chore(deploy): migrar railway para postgres`
+- `docs(deploy): atualizar fluxo para postgres`
 
 Validação:
 
-- login -> redirect dashboard
-- 401 -> redirect login
+- `/health`
+- `/api/v1/health`
+- login
+- dashboard
+- CRUD de leads
+- interações
+- logout
 
 ---
 
-### ─── ETAPA 9 — FRONTEND FEATURES + DESIGN/RESPONSIVO ─────────
+### ETAPA 8 — DOCUMENTAÇÃO FINAL E HISTORY
 
-Objetivo: telas finais com UX robusta, acessível e responsiva.
+Objetivo: concluir `HISTORY.md`, atualizar `README.md`, `docs/deploy/README.md`, arquivos `.env` de exemplo e documentação auxiliar, removendo referências ativas ao banco legado do produto final.
 
-Commits estratégicos:
+Commits sugeridos:
 
-1. feat(ui): design system e componentes base responsivos
-   Contexto: consistência visual e manutenção.
-   Inclui: tokens, breakpoints, Button/Input/Modal/Badge/Spinner/EmptyState, Sidebar/Header.
-   Impacto: base visual padronizada e mobile-first.
-
-2. feat(leads-ui): páginas de leads e detalhe com estados completos
-   Contexto: fluxo operacional diário do CRM.
-   Inclui: listagem, filtros, formulário, detalhes e interações com loading/error/empty.
-   Impacto: gestão de leads completa no frontend.
-
-3. feat(kanban-dashboard): board de status + dashboard com auditoria de responsividade
-   Contexto: visão de funil e produtividade.
-   Inclui: kanban (dnd + fallback mobile), dashboard de métricas, revisão 320/375/425/768/1024/1280.
-   Impacto: experiência confiável em desktop e mobile.
+- `docs(history): registrar cronologia completa do projeto`
+- `docs(project): concluir documentacao final em postgresql`
 
 Validação:
 
-- Fluxos CRUD completos
-- Kanban atualiza status e persiste
-- Sem overflow horizontal em nenhum breakpoint
+- revisão integral das instruções;
+- busca final por resíduos do legado.
 
 ---
 
-### ─── ETAPA 9b — E2E (Playwright) ─────────────────────────────
+### ETAPA 9 — FECHAMENTO DA BRANCH E RETORNO PARA MAIN
 
-Objetivo: garantir fluxos críticos em navegador real.
+Objetivo: validar a branch completa, sincronizar com `origin/main` se necessário e preparar o merge final preservando histórico.
 
-Commits estratégicos:
+Integração final:
 
-1. test(e2e): setup playwright + fixture de autenticação
-   Contexto: base para testes de ponta a ponta.
-   Inclui: playwright.config.ts, fixture authenticatedPage, scripts de execução.
-   Impacto: suíte E2E pronta para crescer.
-
-2. test(e2e): specs de auth, leads, kanban e dashboard
-   Contexto: proteção contra regressão de produto.
-   Inclui: auth.spec.ts, leads.spec.ts, kanban.spec.ts, dashboard.spec.ts.
-   Impacto: validação automatizada dos fluxos críticos.
+- merge sem squash da branch `chore/postgresql-migration` em `main`.
 
 Validação:
 
-- npm run test:e2e
+- builds
+- testes backend
+- E2E
+- Docker local
+- deploy
+- docs
 
 ---
 
-### ─── ETAPA 10 — DEPLOY (Vercel + Railway) ────────────────────
+### ETAPAS COMPLEMENTARES REGISTRADAS NO HISTÓRICO
 
-Objetivo: publicação em ambiente real com variáveis corretas.
-
-Commit estratégico:
-
-1. chore(deploy): configuração de produção e documentação de variáveis
-   Contexto: evitar falha de integração entre frontend e backend.
-   Inclui: NEXT_PUBLIC_API_URL, CORS_ORIGIN, DATABASE_URL, JWT_SECRET e checklist de smoke test.
-   Impacto: deploy replicável e auditável.
-
-Validação:
-
-- register -> login -> criar lead -> mover no kanban em produção
+- `Etapa 9c - Feedback Visual`
+- `Etapa 10b - Sessão/CORS/Proxy`
+- `Etapa 10c - Migração para PostgreSQL`
+- `Etapa 10d - Upgrade de Node/NPM`
 
 ---
 
-### ─── ETAPA 11 — DOCUMENTAÇÃO E ENTREGA ───────────────────────
+### Regras finais de execução
 
-Objetivo: entrega final com rastreabilidade técnica e uso de IA documentado.
-
-Commits estratégicos:
-
-1. docs(ai): documentação completa de uso da IA
-   Contexto: atender exigência do teste técnico.
-   Inclui: /docs/ai/README.md, prompts.md, decisions.md, review.md.
-   Impacto: transparência no processo de construção.
-
-2. docs(project): README final + checklist de entrega
-   Contexto: facilitar avaliação e execução local.
-   Inclui: setup local, docker, variáveis, comandos de teste, pendências e diferenciais.
-   Impacto: avaliador consegue executar sem fricção.
-
-Validação:
-
-- checklist da Seção 18 completo
-
----
-
-### 📊 MAPA DE COMMITS — RESUMO TOTAL (ESTRATÉGICO)
-
-| Etapa | Descrição                             | Commits                  |
-| ----- | ------------------------------------- | ------------------------ |
-| 1     | Banco MySQL + Prisma                  | 2                        |
-| 2     | Backend fundação                      | 3                        |
-| 3     | Autenticação                          | 2                        |
-| 4     | Leads                                 | 2                        |
-| 5     | Interações + Dashboard                | 2                        |
-| 6     | Testes backend                        | 2                        |
-| 7     | Docker (5 serviços)                   | 3                        |
-| 8     | Frontend base + auth                  | 3                        |
-| 9     | Frontend features + design responsivo | 3                        |
-| 9b    | E2E Playwright                        | 2                        |
-| 10    | Deploy                                | 1                        |
-| 11    | Documentação e entrega                | 2                        |
-| TOTAL |                                       | ~27 commits estratégicos |
-
-> Regra prática: commit suficiente para contar história técnica, sem micro-fragmentar demais.
+- uma etapa por vez;
+- sem avançar sem validação;
+- sem avançar sem atualizar `HISTORY.md`;
+- sem avançar sem listar ações manuais;
+- sem avançar sem sugerir commits;
+- sem avançar sem perguntar: `Posso avançar para a próxima etapa?`
 
 ---
 

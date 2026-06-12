@@ -1,3 +1,10 @@
+/**
+ * Teste de integracao.
+ *
+ * Responsavel por integracao de leads.
+ *
+ * Valida o fluxo com app, Prisma e banco de teste reais.
+ */
 import { LeadStatus } from "@prisma/client";
 import { createAuthenticatedAgent } from "../helpers/factories";
 

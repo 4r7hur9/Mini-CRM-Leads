@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de layout.
+ *
+ * Responsavel por menu lateral da area autenticada.
+ *
+ * Estrutura a area autenticada e organiza a navegacao do app.
+ */
 import { BarChart3, ContactRound, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

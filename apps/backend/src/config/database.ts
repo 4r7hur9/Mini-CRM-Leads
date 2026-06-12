@@ -1,3 +1,10 @@
+/**
+ * Cliente Prisma compartilhado.
+ *
+ * Responsavel por instancia compartilhada do PrismaClient.
+ *
+ * Disponibiliza o PrismaClient compartilhado para a camada de dados.
+ */
 import { PrismaClient } from "@prisma/client";
 import { env } from "./env";
 

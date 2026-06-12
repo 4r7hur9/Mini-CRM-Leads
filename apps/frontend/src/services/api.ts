@@ -1,6 +1,14 @@
 "use client";
 
+/**
+ * Cliente HTTP central.
+ *
+ * Responsavel por cliente Axios, interceptors e tratamento de erros.
+ *
+ * Serve como cliente Axios central para todas as features do frontend.
+ */
 import axios, { AxiosError } from "axios";
+import { getLoginRedirectPath } from "@/features/auth/utils/logoutRedirect";
 import { API_BASE_URL } from "@/lib/constants";
 import type { ApiErrorResponse } from "@/types/api";
 
@@ -12,10 +20,33 @@ export const api = axios.create({
   },
 });
 
+function getResponseMessage(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") {
+    return undefined;
+  }
+
+  const response = data as {
+    error?: {
+      message?: unknown;
+    };
+    message?: unknown;
+  };
+
+  if (typeof response.error?.message === "string") {
+    return response.error.message;
+  }
+
+  if (typeof response.message === "string") {
+    return response.message;
+  }
+
+  return undefined;
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
     return (
-      error.response?.data.error.message ??
+      getResponseMessage(error.response?.data) ??
       "Nao foi possivel concluir a operacao. Tente novamente."
     );
   }
@@ -36,7 +67,7 @@ api.interceptors.response.use(
       !window.location.pathname.startsWith("/login") &&
       !window.location.pathname.startsWith("/register")
     ) {
-      window.location.assign("/login");
+      window.location.assign(getLoginRedirectPath());
     }
 
     return Promise.reject(error);

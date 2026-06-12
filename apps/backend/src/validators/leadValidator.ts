@@ -1,3 +1,10 @@
+/**
+ * Validador de entrada.
+ *
+ * Responsavel por schema de leads e status.
+ *
+ * E usado pelo validationMiddleware antes da execucao do controller.
+ */
 import { LeadStatus } from "@prisma/client";
 import { z } from "zod";
 

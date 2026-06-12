@@ -1,3 +1,10 @@
+/**
+ * Arquivo TypeScript do projeto.
+ *
+ * Responsavel por comportamento do Kanban.
+ *
+ * Mantem a responsabilidade do arquivo separada das camadas vizinhas.
+ */
 import { expect } from "@playwright/test";
 import { test } from "./fixtures/auth.fixture";
 

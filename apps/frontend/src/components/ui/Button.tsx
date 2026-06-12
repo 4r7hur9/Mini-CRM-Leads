@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por botao padrao do sistema.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 import type { ButtonHTMLAttributes } from "react";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

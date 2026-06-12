@@ -1,3 +1,10 @@
+/**
+ * Formatadores compartilhados.
+ *
+ * Responsavel pelos formatadores de data, moeda e texto.
+ *
+ * Concentra formatacoes reutilizadas por componentes e paginas.
+ */
 export function formatDate(value: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",

@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por campo de texto padrao.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 import type { InputHTMLAttributes } from "react";
 
 type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {

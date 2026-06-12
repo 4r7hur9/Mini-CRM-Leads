@@ -1,3 +1,10 @@
+/**
+ * Pagina ou layout do App Router.
+ *
+ * Responsavel por layout protegido do app autenticado.
+ *
+ * Funciona como ponto de entrada visual do Next.js.
+ */
 import { AppShell } from "@/components/layout/AppShell";
 import { AuthSessionGate } from "@/features/auth/components/AuthSessionGate";
 

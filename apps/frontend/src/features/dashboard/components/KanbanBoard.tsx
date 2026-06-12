@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente do dashboard.
+ *
+ * Responsavel por quadro Kanban dos leads.
+ *
+ * Consome o dashboard e organiza metricas e Kanban.
+ */
 import {
   DndContext,
   KeyboardSensor,

@@ -1,3 +1,10 @@
+/**
+ * Rotas da API.
+ *
+ * Responsavel por rotas de autenticacao.
+ *
+ * Agrupa os endpoints expostos por app.ts e encaminha para os controllers.
+ */
 import { Router } from "express";
 import * as authController from "../controllers/authController";
 import { authMiddleware } from "../middlewares/authMiddleware";

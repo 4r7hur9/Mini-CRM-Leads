@@ -1,3 +1,10 @@
+/**
+ * Configuracao global do Playwright.
+ *
+ * Responsavel pela configuracao global do Playwright.
+ *
+ * Controla a execucao E2E, fixtures, browsers e variaveis de teste.
+ */
 import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 

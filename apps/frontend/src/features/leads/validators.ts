@@ -1,3 +1,10 @@
+/**
+ * Componente de leads.
+ *
+ * Responsavel por schemas de validacao de leads.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { z } from "zod";
 import { LEAD_STATUSES } from "./constants";
 

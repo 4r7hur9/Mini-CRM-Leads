@@ -1,3 +1,10 @@
+/**
+ * Controller da API.
+ *
+ * Responsavel por CRUD de interacoes.
+ *
+ * Conecta as rotas ao service correto e padroniza a resposta HTTP.
+ */
 import type { Request } from "express";
 import * as interactionService from "../services/interactionService";
 import type { CreateInteractionInput } from "../validators/interactionValidator";

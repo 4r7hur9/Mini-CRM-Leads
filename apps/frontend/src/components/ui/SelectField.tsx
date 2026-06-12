@@ -1,3 +1,10 @@
+/**
+ * Componente visual reutilizavel.
+ *
+ * Responsavel por select estilizado.
+ *
+ * E reutilizado como base visual pelas telas e formularios.
+ */
 import type { SelectHTMLAttributes } from "react";
 
 type SelectFieldProps = SelectHTMLAttributes<HTMLSelectElement> & {

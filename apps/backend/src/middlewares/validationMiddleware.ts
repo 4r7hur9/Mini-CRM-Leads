@@ -1,3 +1,10 @@
+/**
+ * Middleware da API.
+ *
+ * Responsavel por validar corpo, params e query com Zod.
+ *
+ * Protege a entrada da API antes de chegar aos controllers.
+ */
 import type { RequestHandler } from "express";
 import type { ZodTypeAny } from "zod";
 

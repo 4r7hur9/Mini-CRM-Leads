@@ -1,11 +1,19 @@
 "use client";
 
+/**
+ * Componente de leads.
+ *
+ * Responsavel por pagina client da lista de leads.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { getApiErrorMessage } from "@/services/api";
 import {
   createLead,
@@ -53,9 +61,11 @@ export function LeadsPageClient() {
     try {
       await createLead(payload);
       setCreateOpen(false);
+      notifySuccess("Lead criado com sucesso.");
       await loadLeads({ ...filters, page: 1 });
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel criar o lead.");
     } finally {
       setIsSaving(false);
     }
@@ -71,9 +81,11 @@ export function LeadsPageClient() {
     try {
       await updateLead(editingLead.id, payload);
       setEditingLead(null);
+      notifySuccess("Lead atualizado com sucesso.");
       await loadLeads(filters);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel atualizar o lead.");
     } finally {
       setIsSaving(false);
     }
@@ -88,9 +100,11 @@ export function LeadsPageClient() {
 
     try {
       await deleteLead(lead.id);
+      notifySuccess("Lead removido com sucesso.");
       await loadLeads(filters);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel remover o lead.");
     }
   }
 

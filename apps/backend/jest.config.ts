@@ -1,3 +1,10 @@
+/**
+ * Configuracao do Jest no backend.
+ *
+ * Responsavel pela configuracao do Jest para backend.
+ *
+ * Define transformacoes, ambiente e cobertura da suite de testes do backend.
+ */
 import type { Config } from "jest";
 
 const config: Config = {

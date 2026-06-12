@@ -1,3 +1,10 @@
+/**
+ * Servico de negocio do backend.
+ *
+ * Responsavel por chamadas da API para leads.
+ *
+ * Faz a ponte entre controllers e repositories, concentrando regras de negocio.
+ */
 import type { Lead, LeadStatus } from "@prisma/client";
 import * as leadRepository from "../repositories/leadRepository";
 import type { CreateLeadData, LeadListResult, ListLeadFilters, UpdateLeadData } from "../types/lead";

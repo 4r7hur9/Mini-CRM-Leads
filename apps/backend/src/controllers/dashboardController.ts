@@ -1,3 +1,10 @@
+/**
+ * Controller da API.
+ *
+ * Responsavel por resumo do dashboard.
+ *
+ * Conecta as rotas ao service correto e padroniza a resposta HTTP.
+ */
 import type { Request } from "express";
 import * as dashboardService from "../services/dashboardService";
 import { AppError } from "../utils/AppError";

@@ -1,3 +1,10 @@
+/**
+ * Validador de entrada.
+ *
+ * Responsavel por schema de interacoes.
+ *
+ * E usado pelo validationMiddleware antes da execucao do controller.
+ */
 import { InteractionType } from "@prisma/client";
 import { z } from "zod";
 

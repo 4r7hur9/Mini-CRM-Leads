@@ -1,3 +1,10 @@
+/**
+ * Configuracao de cookies httpOnly.
+ *
+ * Responsavel por opcoes do cookie httpOnly do token.
+ *
+ * Centraliza as opcoes usadas para persistir e limpar a sessao autenticada.
+ */
 import type { CookieOptions } from "express";
 import { env } from "../config/env";
 

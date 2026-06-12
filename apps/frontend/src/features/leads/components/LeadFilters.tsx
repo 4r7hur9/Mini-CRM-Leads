@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de leads.
+ *
+ * Responsavel por filtros da lista de leads.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";

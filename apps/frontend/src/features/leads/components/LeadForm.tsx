@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de leads.
+ *
+ * Responsavel por formulario de cadastro e edicao.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save } from "lucide-react";
 import { useForm } from "react-hook-form";

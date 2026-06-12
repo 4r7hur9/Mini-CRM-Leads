@@ -1,3 +1,10 @@
+/**
+ * Componente de autenticacao.
+ *
+ * Responsavel por schemas de validacao de leads.
+ *
+ * Integra store, service, toasts e protecao de sessao.
+ */
 import { z } from "zod";
 
 const emailSchema = z

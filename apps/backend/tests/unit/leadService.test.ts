@@ -1,3 +1,10 @@
+/**
+ * Teste unitario.
+ *
+ * Responsavel por unidade do servico de lead.
+ *
+ * Valida a regra de negocio da camada isolada sem dependencias externas.
+ */
 import { LeadStatus } from "@prisma/client";
 import * as leadService from "../../src/services/leadService";
 import { prisma } from "../../src/config/database";

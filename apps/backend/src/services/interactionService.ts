@@ -1,3 +1,10 @@
+/**
+ * Servico de negocio do backend.
+ *
+ * Responsavel por regras de negocio de interacoes.
+ *
+ * Faz a ponte entre controllers e repositories, concentrando regras de negocio.
+ */
 import type { Interaction } from "@prisma/client";
 import * as interactionRepository from "../repositories/interactionRepository";
 import * as leadService from "./leadService";

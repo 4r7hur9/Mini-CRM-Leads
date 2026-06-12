@@ -1,8 +1,17 @@
-import { env } from "./config/env";
-import { prisma } from "./config/database";
+/**
+ * Bootstrap HTTP do backend.
+ *
+ * Responsavel por sobe o servidor HTTP e trata shutdown gracioso.
+ *
+ * Inicializa o HTTP server e controla o shutdown gracioso.
+ */
 import { app } from "./app";
+import { prisma } from "./config/database";
+import { env } from "./config/env";
 
-const server = app.listen(env.PORT, () => {
+const HOST = "0.0.0.0";
+
+const server = app.listen(env.PORT, HOST, () => {
   console.log(`API running on port ${env.PORT}`);
 });
 

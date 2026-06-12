@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -10,13 +10,13 @@ COPY package*.json ./
 RUN npm ci
 
 COPY prisma ./prisma
-RUN DATABASE_URL="${DATABASE_URL:-mysql://placeholder:placeholder@localhost:3306/placeholder}" npx prisma generate
+RUN DATABASE_URL="${DATABASE_URL:-postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public}" npx prisma generate
 
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 WORKDIR /app
 

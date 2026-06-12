@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Componente de leads.
+ *
+ * Responsavel por tela de detalhe do lead.
+ *
+ * Conecta formularios, listas, interacoes e movimentacao de status.
+ */
 import { ArrowLeft, Building2, Mail, Phone, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { getApiErrorMessage } from "@/services/api";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import {
@@ -63,9 +71,11 @@ export function LeadDetailPageClient({ leadId }: LeadDetailPageClientProps) {
     try {
       await updateLead(lead.id, payload);
       setEditOpen(false);
+      notifySuccess("Lead atualizado com sucesso.");
       await loadLead();
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel atualizar o lead.");
     } finally {
       setIsSaving(false);
     }
@@ -81,9 +91,11 @@ export function LeadDetailPageClient({ leadId }: LeadDetailPageClientProps) {
 
     try {
       await updateLeadStatus(lead.id, status);
+      notifySuccess(`Status atualizado para ${leadStatusLabels[status]}.`);
     } catch (requestError) {
       setLead(previous);
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel atualizar o status do lead.");
     }
   }
 
@@ -96,9 +108,11 @@ export function LeadDetailPageClient({ leadId }: LeadDetailPageClientProps) {
 
     try {
       await createInteraction(lead.id, payload);
+      notifySuccess("Interacao registrada com sucesso.");
       await loadLead();
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel registrar a interacao.");
     } finally {
       setIsSaving(false);
     }
@@ -111,9 +125,11 @@ export function LeadDetailPageClient({ leadId }: LeadDetailPageClientProps) {
 
     try {
       await deleteInteraction(lead.id, interactionId);
+      notifySuccess("Interacao removida com sucesso.");
       await loadLead();
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel remover a interacao.");
     }
   }
 
@@ -122,8 +138,14 @@ export function LeadDetailPageClient({ leadId }: LeadDetailPageClientProps) {
       return;
     }
 
-    await deleteLead(lead.id);
-    router.replace("/leads");
+    try {
+      await deleteLead(lead.id);
+      notifySuccess("Lead removido com sucesso.");
+      router.replace("/leads");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError));
+      notifyError(requestError, "Nao foi possivel remover o lead.");
+    }
   }
 
   if (isLoading) {

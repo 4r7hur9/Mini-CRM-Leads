@@ -1,3 +1,10 @@
+/**
+ * Arquivo TypeScript do projeto.
+ *
+ * Responsavel por contexto autenticado reutilizavel.
+ *
+ * Mantem a responsabilidade do arquivo separada das camadas vizinhas.
+ */
 import { expect, test as base, type Page } from "@playwright/test";
 
 type AuthFixtures = {

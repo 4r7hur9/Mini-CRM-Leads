@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-mini-crm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mini_crm_leads
+      POSTGRES_USER: arthur
+      POSTGRES_PASSWORD: "3326"
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_mini_crm_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arthur -d mini_crm_leads"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  postgres_mini_crm_data:
