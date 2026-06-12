@@ -380,3 +380,20 @@ Entrega de documentacao alinhada ao fluxo final do projeto:
 - a relacao entre `E2E_TEST_KEY` na raiz e `RATE_LIMIT_E2E_BYPASS_KEY` no backend foi documentada;
 - os exemplos de segredo do contexto foram alinhados aos arquivos `.env.example`;
 - o merge final para `main` continua dependendo de aprovacao manual.
+
+## 24. Transparencia do uso de IA
+
+- `docs/ai/README.md` foi preenchido com as ferramentas utilizadas e as areas em que a IA ajudou;
+- as decisoes e validacoes manuais do candidato foram registradas;
+- limitacoes, erros e correcoes relevantes da IA foram documentados;
+- o processo usado para revisar codigo, infraestrutura e documentacao gerados com IA foi descrito;
+- os documentos detalhados de prompts, decisoes e revisao foram referenciados sem duplicar todo o seu conteudo.
+
+## 25. Fechamento documental para entrega
+
+- `README.md` foi reestruturado para remover repeticoes e explicar stack, instalacao, variaveis, Docker, testes, deploy, arquitetura e funcionalidades;
+- a lista de pendencias foi convertida em melhorias futuras mais realistas para o escopo do teste tecnico;
+- `docs/ai/README.md`, `docs/ai/prompts.md`, `docs/ai/decisions.md` e `docs/ai/review.md` foram reescritos com linguagem mais natural e menos generica;
+- as decisoes de IA passaram a refletir problemas reais enfrentados no projeto, incluindo deploy, cookies, rate limit, E2E e validacao manual;
+- referencias ativas ao banco legado foram retiradas dos documentos de entrega, preservando detalhes historicos apenas neste arquivo;
+- a branch segue pendente de commit final, pull request e merge para `main`.

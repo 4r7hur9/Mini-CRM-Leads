@@ -1,65 +1,97 @@
 # Mini CRM de Leads
 
-Mini CRM full-stack para gestao de leads, autenticacao com cookie httpOnly, dashboard, Kanban, interacoes e deploy em Railway + Vercel.
+Mini CRM full-stack para gestão de leads. O projeto entrega autenticação com cookie HttpOnly, dashboard, Kanban, interações por lead, testes automatizados, Docker local e deploy com frontend na Vercel e backend no Railway.
+
+Este repositório foi desenvolvido para o **Teste Técnico Full-Stack Jr | Next.js + Node.js + PostgreSQL**.
 
 ## Stack
 
-- `frontend`: Next.js App Router + TypeScript
-- `backend`: Express + TypeScript
-- `orm`: Prisma
-- `banco`: PostgreSQL
-- `ui admin banco`: pgAdmin
-- `proxy local`: Traefik
-- `testes backend`: Jest + Supertest
-- `testes e2e`: Playwright
-- `feedback visual`: react-toastify
+- **Frontend:** Next.js App Router, React, TypeScript, Zustand, Axios, React Hook Form, Zod e `react-toastify`
+- **Backend:** Node.js, Express, TypeScript, Prisma, Zod, bcrypt, JWT, Helmet, CORS e rate limit
+- **Banco:** PostgreSQL
+- **Admin local do banco:** pgAdmin
+- **Infra local:** Docker Compose + Traefik
+- **Testes backend:** Jest + Supertest
+- **Testes E2E:** Playwright
+- **Deploy:** Vercel para frontend e Railway para backend/banco
 
 ## Estrutura principal
 
-- `apps/frontend`
-- `apps/backend`
-- `docker-compose.yml`
-- `postgres-local/docker-compose.yml`
-- `docs/deploy/README.md`
-- `docs/file-index.md`
-- `docs/ai/README.md`
-- `HISTORY.md`
-- `PROMPT-MESTRE.md`
-- `PROMPT-EXECUTOR.md`
-
-## Variaveis de ambiente
-
-Arquivos de referencia:
-
-- `.env.example`
-- `apps/backend/.env.example`
-- `apps/frontend/.env.local.example`
-- `docs/environment.md`
-
-### Variaveis por contexto
-
-| Contexto | Arquivo | Observacao |
-| --- | --- | --- |
-| Stack local completa | `.env.example` | Copie para `.env` na raiz antes de subir o Docker. |
-| Backend local | `apps/backend/.env.example` | Use para rodar o backend fora do compose. |
-| Backend de teste | `apps/backend/.env.test.example` | Use para a suite de testes isolada. |
-| Frontend local | `apps/frontend/.env.local.example` | Use no `npm run dev` do Next.js. |
-| Producao Vercel | variavel do projeto | `NEXT_PUBLIC_API_URL` precisa ser URL absoluta com `https://`. |
-
-Se quiser usar a stack completa localmente, copie a raiz:
-
-```bash
-cp .env.example .env
+```text
+apps/
+  backend/      API Express, Prisma, migrations, seed e testes backend
+  frontend/     Aplicação Next.js, telas, componentes, features e services
+docs/
+  ai/           Documentação do uso de IA
+  deploy/       Guia de deploy Railway/Vercel
+e2e/            Testes Playwright
+postgres-local/ Banco PostgreSQL isolado para desenvolvimento/testes
+traefik/        Configuração do proxy reverso local
 ```
 
-Principais chaves da raiz:
+Documentação auxiliar:
+
+| Arquivo | Função |
+| --- | --- |
+| `docs/file-index.md` | Mapa dos arquivos e responsabilidades do projeto. |
+| `docs/environment.md` | Guia central das variáveis por contexto. |
+| `docs/documentation-audit.md` | Auditoria de documentação técnica e cobertura TSDoc. |
+| `docs/deploy/README.md` | Passo a passo de deploy e variáveis de produção. |
+| `docs/ai/README.md` | Visão geral do uso de IA no projeto. |
+| `docs/ai/prompts.md` | Prompts principais usados durante o desenvolvimento. |
+| `docs/ai/decisions.md` | Decisões técnicas explicadas em linguagem direta. |
+| `docs/ai/review.md` | Revisão do que foi gerado, corrigido e validado. |
+| `HISTORY.md` | Histórico técnico, incidentes, decisões e validações. |
+
+## Pré-requisitos
+
+- Node.js 24 LTS
+- npm 11
+- Docker Desktop com Docker Compose
+- Git
+
+## Instalação
+
+Clone o repositório:
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd mini-crm-leads
+```
+
+Instale as dependências:
+
+```bash
+npm install
+
+cd apps/backend
+npm install
+
+cd ../frontend
+npm install
+```
+
+## Variáveis de ambiente
+
+Use os arquivos de exemplo como referência:
+
+| Contexto | Arquivo |
+| --- | --- |
+| Stack Docker local | `.env.example` |
+| Backend local fora do Compose | `apps/backend/.env.example` |
+| Backend de teste | `apps/backend/.env.test.example` |
+| Frontend local | `apps/frontend/.env.local.example` |
+
+O guia completo fica em `docs/environment.md`.
+
+Exemplo da raiz para a stack Docker:
 
 ```env
 POSTGRES_DB=mini_crm_leads
 POSTGRES_USER=arthur
 POSTGRES_PASSWORD=3326
 POSTGRES_PORT=5433
-PGADMIN_DEFAULT_EMAIL=admin@mini-crm.local
+PGADMIN_DEFAULT_EMAIL=admin@example.com
 PGADMIN_DEFAULT_PASSWORD=admin123456
 JWT_SECRET=desenvolvimento-mini-crm-altere-esta-chave-antes-da-producao
 CORS_ORIGIN=http://localhost
@@ -70,16 +102,26 @@ RATE_LIMIT_E2E_BYPASS_ENABLED=false
 E2E_TEST_KEY=
 ```
 
-## Subir tudo com Docker
+Em produção, atenção especial para:
+
+- `NEXT_PUBLIC_API_URL` precisa ser uma URL absoluta com `https://` e terminar em `/api/v1`;
+- `COOKIE_SECURE=true`;
+- `COOKIE_SAME_SITE=none`;
+- `CORS_ORIGIN` precisa conter a URL pública do frontend;
+- `JWT_SECRET` deve ser longo e exclusivo do ambiente.
+
+## Subir com Docker
+
+Na raiz:
 
 ```bash
+cp .env.example .env
 docker compose up -d --build
 docker compose ps
-docker compose logs -f backend
 docker compose exec backend npx prisma db seed
 ```
 
-### Servicos da stack principal
+Serviços da stack:
 
 - `traefik`
 - `postgres`
@@ -87,25 +129,29 @@ docker compose exec backend npx prisma db seed
 - `backend`
 - `frontend`
 
-### URLs esperadas
+URLs locais:
 
-- frontend: `http://localhost`
-- backend health: `http://localhost/health`
-- backend api health: `http://localhost/api/v1/health`
-- login: `http://localhost/login`
-- registro: `http://localhost/register`
-- dashboard do Traefik: `http://localhost:8080`
-- pgAdmin: `http://localhost:8081`
-- PostgreSQL direto no host: `localhost:5433`
+| Serviço | URL |
+| --- | --- |
+| Frontend | `http://localhost` |
+| Health backend | `http://localhost/health` |
+| Health API | `http://localhost/api/v1/health` |
+| Login | `http://localhost/login` |
+| Registro | `http://localhost/register` |
+| Traefik dashboard | `http://localhost:8080` |
+| pgAdmin | `http://localhost:8081` |
+| PostgreSQL no host | `localhost:5433` |
 
-### Credenciais seed
+Credenciais do seed:
 
-- email: `admin@teste.com`
-- senha: `Admin@123`
+```text
+email: admin@teste.com
+senha: Admin@123
+```
 
-## Banco isolado para desenvolvimento/testes
+## Banco isolado
 
-Quando quiser subir apenas o banco local isolado:
+Para rodar somente o banco de desenvolvimento/testes:
 
 ```bash
 cd postgres-local
@@ -115,23 +161,20 @@ docker compose ps
 
 Porta exposta:
 
-- `localhost:5434`
+```text
+localhost:5434
+```
 
-URL esperada para backend local:
+URLs comuns:
 
 ```env
 DATABASE_URL=postgresql://arthur:3326@localhost:5434/mini_crm_leads?schema=public
-```
-
-URL esperada para testes:
-
-```env
 DATABASE_URL=postgresql://arthur:3326@localhost:5434/mini_crm_leads_test?schema=public
 ```
 
 ## Rodar sem Docker completo
 
-### Backend
+Backend:
 
 ```bash
 cd apps/backend
@@ -140,7 +183,7 @@ npx prisma generate
 npm run dev
 ```
 
-### Frontend
+Frontend:
 
 ```bash
 cd apps/frontend
@@ -150,27 +193,26 @@ npm run dev
 
 ## Prisma
 
-Comandos principais no backend:
+No backend:
 
 ```bash
 npx prisma validate
 npx prisma generate
 npx prisma migrate dev --name init_postgresql
+npx prisma migrate deploy
 npm run db:seed
 ```
 
 ## Testes
 
-### Backend
+Backend:
 
 ```bash
 cd apps/backend
 npm test
 ```
 
-### E2E
-
-Na raiz:
+E2E:
 
 ```bash
 npm install
@@ -178,7 +220,7 @@ npm run test:e2e:install
 npm run test:e2e
 ```
 
-Se quiser liberar apenas o Playwright do rate limit local:
+Para liberar apenas o Playwright do rate limit local:
 
 ```env
 RATE_LIMIT_E2E_BYPASS_ENABLED=true
@@ -187,14 +229,14 @@ E2E_TEST_KEY=crie_um_token_longo_e_aleatorio_so_para_testes_locais
 
 ## Deploy
 
-Resumo:
+Resumo do deploy:
 
-- frontend no Vercel com `Root Directory = apps/frontend`
-- backend no Railway com `Root Directory = apps/backend`
-- banco PostgreSQL no Railway
-- `NEXT_PUBLIC_API_URL` em producao deve terminar em `/api/v1` e incluir `https://`
+- frontend na Vercel com root em `apps/frontend`;
+- backend no Railway como container Docker baseado em `apps/backend/Dockerfile`;
+- PostgreSQL no Railway;
+- comunicação do frontend com backend via rewrite/proxy em `/api/v1`.
 
-Variaveis mais importantes em producao:
+Variáveis principais:
 
 ```env
 NEXT_PUBLIC_API_URL=https://seu-backend.railway.app/api/v1
@@ -205,94 +247,58 @@ COOKIE_SECURE=true
 COOKIE_SAME_SITE=none
 ```
 
-Doc detalhada:
-
-- `docs/deploy/README.md`
-
-Documentacao auxiliar:
-
-- `docs/file-index.md`
-- `docs/documentation-audit.md`
-- `docs/environment.md`
-- `docs/ai/README.md`
-- `docs/ai/prompts.md`
-- `docs/ai/decisions.md`
-- `docs/ai/review.md`
+Guia detalhado: `docs/deploy/README.md`.
 
 ## Arquitetura visual
 
-### Visao geral
+### 1. Visão geral
 
 ```mermaid
 flowchart LR
-  U[Usuario] --> V[Vercel / Next.js]
-  V -->|rewrite /api/v1| A[Railway / Express API]
-  A --> P[Prisma Client]
-  P --> D[(PostgreSQL)]
-  A --> C[Cookie httpOnly]
-  C --> V
+  User[Usuário no navegador]
+
+  subgraph Frontend[Next.js na Vercel]
+    UI[Páginas e componentes]
+    Store[Zustand]
+    APIClient[Axios com credentials]
+  end
+
+  subgraph Backend[Express no Railway]
+    Routes[Routes]
+    Middlewares[Auth, CORS, Helmet, rate limit]
+    Controllers[Controllers]
+    Services[Services]
+    Repositories[Repositories]
+    Prisma[Prisma Client]
+  end
+
+  DB[(PostgreSQL)]
+
+  User --> UI
+  UI --> Store
+  UI --> APIClient
+  APIClient -->|/api/v1| Routes
+  Routes --> Middlewares --> Controllers --> Services --> Repositories --> Prisma --> DB
+  Routes -->|Set-Cookie HttpOnly| User
 ```
 
-### Estrutura principal
+### 2. Camadas do backend
 
 ```mermaid
-graph TD
-  R[Repositorio]
-  R --> FE[apps/frontend]
-  R --> BE[apps/backend]
-  R --> E2E[e2e]
-  R --> DOCS[docs]
-  FE --> FEA[app]
-  FE --> FEC[components]
-  FE --> FEF[features]
-  BE --> BEC[controllers]
-  BE --> BES[services]
-  BE --> BER[repositories]
-  BE --> BEM[middlewares]
-  BE --> BET[tests]
+flowchart TD
+  Request[HTTP Request]
+  Response[HTTP Response]
+
+  Request --> MW[Middlewares]
+  MW --> CT[Controllers]
+  CT --> SV[Services]
+  SV --> RP[Repositories]
+  RP --> PR[Prisma Client]
+  PR --> PG[(PostgreSQL)]
+  PG --> PR --> RP --> SV --> CT --> Response
 ```
 
-### Autenticacao
-
-```mermaid
-sequenceDiagram
-  participant U as Usuario
-  participant F as Frontend
-  participant A as API
-  participant S as authService
-  participant D as PostgreSQL
-
-  U->>F: envia login ou cadastro
-  F->>A: POST /api/v1/auth/*
-  A->>S: valida credenciais
-  S->>D: busca ou cria usuario
-  D-->>S: usuario persistido
-  S-->>A: token + dados publicos
-  A-->>F: cookie httpOnly + resposta
-  F-->>U: atualiza sessao
-```
-
-### Leads e Kanban
-
-```mermaid
-sequenceDiagram
-  participant U as Usuario
-  participant F as Frontend
-  participant A as API
-  participant S as leadService
-  participant D as PostgreSQL
-
-  U->>F: cria, edita ou move lead
-  F->>A: request autenticada
-  A->>S: aplica regra de negocio
-  S->>D: persiste lead ou interacao
-  D-->>S: estado atualizado
-  S-->>A: resposta tratada
-  A-->>F: JSON com dados atualizados
-  F-->>U: atualiza cards, listas e toasts
-```
-
-### Modelo de dados
+### 3. Modelo de dados
 
 ```mermaid
 erDiagram
@@ -300,32 +306,107 @@ erDiagram
   Lead ||--o{ Interaction : registra
 
   User {
-    string id
+    string id PK
     string name
-    string email
+    string email UNIQUE
     string passwordHash
+    datetime createdAt
+    datetime updatedAt
   }
 
   Lead {
-    string id
-    string userId
+    string id PK
+    string userId FK
     string name
-    string status
+    string email
+    string phone
     string company
+    string status
+    string notes
+    datetime createdAt
+    datetime updatedAt
   }
 
   Interaction {
-    string id
-    string leadId
+    string id PK
+    string leadId FK
     string type
     string description
+    datetime createdAt
   }
 ```
 
-## Contexto vivo
+### 4. Stack local
 
-O historico tecnico do projeto fica em:
+```mermaid
+flowchart LR
+  Browser[Navegador]
 
-- `HISTORY.md`
+  subgraph DockerCompose[Docker Compose local]
+    Traefik[Traefik]
+    Front[Frontend]
+    Back[Backend]
+    Postgres[PostgreSQL]
+    PgAdmin[pgAdmin]
+  end
 
-Ele registra etapas, incidentes, correcoes e decisoes da migracao e das entregas anteriores.
+  Browser -->|80| Traefik
+  Traefik -->|/| Front
+  Traefik -->|/api/v1| Back
+  Back --> Postgres
+  Browser -->|8081| PgAdmin
+```
+
+### 5. Fluxo de autenticação
+
+```mermaid
+sequenceDiagram
+  participant U as Usuário
+  participant F as Frontend
+  participant A as API Express
+  participant D as PostgreSQL
+
+  U->>F: envia email e senha
+  F->>A: POST /api/v1/auth/login
+  A->>D: busca usuário
+  D-->>A: retorna usuário
+  A-->>F: Set-Cookie HttpOnly + dados públicos
+  F-->>U: redireciona para dashboard
+```
+
+## Funcionalidades entregues
+
+- cadastro, login, logout e rota `me`;
+- sessão via JWT em cookie HttpOnly;
+- CRUD de leads com isolamento por usuário;
+- registro de interações por lead;
+- dashboard com métricas e funil;
+- Kanban responsivo com alteração de status;
+- validações com Zod e formulários com React Hook Form;
+- feedback visual com `react-toastify`;
+- testes backend com Jest + Supertest;
+- testes E2E com Playwright;
+- Docker local com Traefik, PostgreSQL, pgAdmin, backend e frontend;
+- deploy preparado para Vercel, Railway e PostgreSQL.
+
+## Melhorias futuras
+
+- ampliar filtros e métricas do dashboard;
+- adicionar recuperação de senha e verificação de e-mail;
+- melhorar observabilidade em produção com logs estruturados e monitoramento de erros;
+- criar importação/exportação de leads;
+- adicionar permissões por papel caso o produto evolua para times;
+- melhorar a camada visual com um design system mais consistente.
+
+## Decisões técnicas principais
+
+- backend em camadas para separar HTTP, regra de negócio e persistência;
+- PostgreSQL como banco oficial;
+- Prisma como ORM e controle de migrations;
+- JWT em cookie HttpOnly;
+- CORS com credentials e origem controlada;
+- Helmet, cookie-parser e rate limit como base de segurança;
+- Axios com `withCredentials` no frontend;
+- Zustand para estado de autenticação;
+- Playwright para validar fluxos reais de uso;
+- `HISTORY.md` como memória técnica do projeto.
